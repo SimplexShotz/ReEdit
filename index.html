@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ReEdit</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900&display=swap">
+    <!--<link rel="stylesheet" href="stylesheet.css">-->
+    <style>
+      * {
+        font-family: "Roboto";
+        font-weight: 300;
+      }
+      body {
+        background-color: rgb(255, 255, 255);
+        margin: 0px;
+        padding: 0px;
+        height: 100vh;
+        /*overflow: hidden;*/
+      }
+      
+      h1 {
+        margin: 0px;
+        font-weight: 400;
+      }
+      
+      .header {
+        position: relative;
+        background-color: rgb(250, 250, 250);
+        width: calc(100% - 100px);
+        height: 50px;
+        line-height: 50px;
+        margin: 0px;
+        padding: 25px 50px 25px 50px;
+        box-shadow: 0px 0px 10px rgba(200, 200, 200, 0.5);
+        z-index: 2;
+        display: flex;
+      }
+      .header-icon {
+        width: 50px;
+        height: 50px;
+        margin-right: 25px;
+      }
+      .header-text {
+        flex-grow: 1;
+      }
+      .content {
+        background-color: rgb(255, 255, 255);
+        width: 100%;
+        height: calc(100vh - 100px);
+        margin: 0px;
+        padding: 0px;
+      }
+      .sidebar {
+        background-color: rgb(250, 250, 250);
+        width: 20%;
+        height: calc(100vh - 150px);
+        margin: 0px;
+        padding: 25px;
+        box-shadow: 0px 0px 10px rgba(200, 200, 200, 0.5);
+        z-index: 1;
+      }
+      .editor-info {
+        /*background-color: rgb(250, 250, 250);
+        width: calc(100% - 50px);
+        height: 50px;
+        margin: 0px;
+        padding: 25px 25px 23px 25px;
+        border-bottom: 2px solid rgb(240, 240, 240);*/
+      }
+      
+      .context {
+        display: none;
+        position: absolute;
+        background-color: rgb(255, 255, 255);
+        width: 200px;
+        min-height: 100px;
+        margin: 0px;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(200, 200, 200, 0.5);
+        z-index: 3;
+      }
+      .context-item {
+        background-color: rgb(255, 255, 255);
+        width: 100%;
+      }
+      .context-item:hover {
+        background-color: rgb(250, 250, 250);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <img class="header-icon" src="resources/pencil.png">
+      <div class="header-text">
+        <h1>ReEdit</h1>
+      </div>
+      <div class="options-container">
+        options placeholder
+      </div>
+    </div>
+    <div class="content">
+      <div class="sidebar">
+      </div>
+      <div class="editor-container">
+        <div class="editor-tabs">
+        </div>
+        <div class="editor-text-container">
+          <div class="">
+          </div>
+        </div>
+        <div class="editor-info">
+        </div>
+      </div>
+    </div>
+    <div class="context">
+      context!
+    </div>
+    <script>
+      function mousePos(e) {
+        if (!e) {
+          var e = window.event;
+        }
+        var mouseX = 0;
+        var mouseY = 0;
+        
+        if (e.pageX || e.pageY) {
+          mouseX = e.pageX;
+          mouseY = e.pageY;
+        } else if (e.clientX || e.clientY) {
+          mouseX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+          mouseY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+        }
+        return {
+          x: mouseX,
+          y: mouseY
+        }
+      }
+      window.onload = function() {
+        document.getElementsByClassName("sidebar")[0].oncontextmenu = function(e) {
+          e.preventDefault();
+          
+          var mp = mousePos(e);
+          var mouseX = mp.x, mouseY = mp.y;
+          var context = document.getElementsByClassName("context")[0];
+          
+          context.style.display = "block";
+          context.style.left = mouseX + "px";
+          context.style.top = mouseY + "px";
+          
+          console.log(mouseX + " " + mouseY);
+        };
+      };
+    </script>
+  </body>
+</html>
