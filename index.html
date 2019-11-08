@@ -5,6 +5,44 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900&display=swap">
     <!--<link rel="stylesheet" href="stylesheet.css">-->
     <style>
+      /* Transitions */
+      @keyframes shadow-in {
+        from {
+          box-shadow: 0px 0px 0px rgba(0, 0, 0, 0);
+        }
+        to {
+          box-shadow: 0px 0px 10px rgba(200, 200, 200, 0.5);
+        }
+      }
+      @keyframes slide-top {
+        from {
+          top: -100px;
+        }
+        to {
+          top: 0px;
+        }
+      }
+      @keyframes slide-left {
+        from {
+          left: calc(-20% - 50px);
+          top: -150px;
+          height: 100vh;
+        }
+        to {
+          left: 0px;
+          top: 0px;
+          height: calc(100vh - 150px);
+        }
+      }
+      .t0-5 {
+        -webkit-transition: all 0.5s cubic-bezier(0.2, 0.6, 0.3, 1);
+        -moz-transition: all 0.5s cubic-bezier(0.2, 0.6, 0.3, 1);
+        -o-transition: all 0.5s cubic-bezier(0.2, 0.6, 0.3, 1);
+        -ms-transition: all 0.5s cubic-bezier(0.2, 0.6, 0.3, 1);
+        transition: all 0.5s cubic-bezier(0.2, 0.6, 0.3, 1);
+      }
+
+      /* Styling */
       * {
         font-family: "Roboto";
         font-weight: 300;
@@ -16,12 +54,49 @@
         height: 100vh;
         /*overflow: hidden;*/
       }
-      
+
       h1 {
         margin: 0px;
         font-weight: 400;
       }
-      
+
+      .icon {
+        width: 30px;
+        height: 30px;
+      }
+      .options-container {
+        display: flex;
+      }
+      .icon-container, .icon-container-close {
+        background-color: rgba(0, 0, 0, 0);
+        width: 30px;
+        height: 30px;
+        padding: 10px;
+        margin-left: 25px;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.5s;
+      }
+      .icon-container:hover, .icon-container-close:hover {
+        background-color: rgb(225, 225, 225);
+        cursor: pointer;
+      }
+      .icon-container-close {
+        position: absolute;
+        top: 25px;
+        right: 50px;
+      }
+      .account-icon-container-close {
+        margin-right: 75px;
+      }
+      .download-icon-container-close {
+        margin-right: 150px;
+      }
+      .run-icon {
+        transform: rotate(-90deg);
+        /* display: none; */
+      }
+
       .header {
         position: relative;
         background-color: rgb(250, 250, 250);
@@ -30,11 +105,11 @@
         line-height: 50px;
         margin: 0px;
         padding: 25px 50px 25px 50px;
-        box-shadow: 0px 0px 10px rgba(200, 200, 200, 0.5);
+        animation: slide-top 2s forwards, 2s shadow-in 2s forwards;
         z-index: 2;
         display: flex;
       }
-      .header-icon {
+      .main-icon {
         width: 50px;
         height: 50px;
         margin-right: 25px;
@@ -42,6 +117,7 @@
       .header-text {
         flex-grow: 1;
       }
+
       .content {
         background-color: rgb(255, 255, 255);
         width: 100%;
@@ -50,12 +126,12 @@
         padding: 0px;
       }
       .sidebar {
+        position: relative;
         background-color: rgb(250, 250, 250);
         width: 20%;
-        height: calc(100vh - 150px);
         margin: 0px;
         padding: 25px;
-        box-shadow: 0px 0px 10px rgba(200, 200, 200, 0.5);
+        animation: slide-left 2s forwards, 2s shadow-in 2s forwards;
         z-index: 1;
       }
       .editor-info {
@@ -66,7 +142,41 @@
         padding: 25px 25px 23px 25px;
         border-bottom: 2px solid rgb(240, 240, 240);*/
       }
-      
+
+      .cover {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0);
+        width: calc(100vw - 200px);
+        height: calc(100vh - 200px);
+        margin: 0px;
+        padding: 100px;
+        top: 0px;
+        left: 0px;
+        opacity: 0;
+        z-index: 3;
+        pointer-events: none;
+      }
+      .cover-active {
+        background-color: rgba(250, 250, 250, 1);
+        opacity: 1;
+      }
+
+      .settings, .account, .download {
+        position: absolute;
+        width: calc(100vw - 200px);
+        height: calc(100vh - 200px);
+        margin: 0px;
+        padding: 100px;
+        top: 0px;
+        left: 0px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .settings-active, .account-active, .download-active {
+        opacity: 1;
+      }
+
+      /* Context Menu */
       .context {
         display: none;
         position: absolute;
@@ -77,7 +187,7 @@
         padding: 25px;
         border-radius: 10px;
         box-shadow: 0px 0px 10px rgba(200, 200, 200, 0.5);
-        z-index: 3;
+        z-index: 5;
       }
       .context-item {
         background-color: rgb(255, 255, 255);
@@ -90,12 +200,23 @@
   </head>
   <body>
     <div class="header">
-      <img class="header-icon" src="resources/pencil.png">
+      <img class="main-icon" src="resources/pencil.png">
       <div class="header-text">
         <h1>ReEdit</h1>
       </div>
       <div class="options-container">
-        options placeholder
+        <div class="icon-container run-icon-container">
+          <img class="icon run-icon" src="resources/download.png">
+        </div>
+        <div class="icon-container download-icon-container">
+          <img class="icon download-icon" src="resources/download.png">
+        </div>
+        <div class="icon-container account-icon-container">
+          <img class="icon account-icon" src="resources/person.png">
+        </div>
+        <div class="icon-container settings-icon-container">
+          <img class="icon settings-icon" src="resources/gear.png">
+        </div>
       </div>
     </div>
     <div class="content">
@@ -117,14 +238,101 @@
         context!
       </div>
     </div>
+    <div class="t0-5 cover">
+      <div class="t0-5 settings">
+        <div class="icon-container-close settings-icon-container-close">
+          <img class="icon settings-icon" src="resources/gear.png">
+        </div>
+        <h1>Settings</h1><br>
+        Welcome to settings!<br>
+        There are currently no settings.
+      </div>
+      <div class="t0-5 account">
+        <div class="icon-container-close account-icon-container-close">
+          <img class="icon account-icon" src="resources/person.png">
+        </div>
+        <h1>Account</h1><br>
+        Welcome to account!<br>
+        You are not signed in.<br><br>
+        <input type="text" id="username" placeholder="Username"><br>
+        <input type="password" id="password" placeholder="Password"><br><br>
+        <input type="checkbox" id="remember">Keep me logged in<br><br>
+        <button onclick="login()" id="login">Login</button><br>
+        <button onclick="createAccount()" id="createAccount">or Create an Account</button>
+      </div>
+      <div class="t0-5 download">
+        <div class="icon-container-close download-icon-container-close">
+          <img class="icon download-icon" src="resources/download.png">
+        </div>
+        <h1>Download</h1><br>
+        Select the project(s) or file(s) to download:<br>
+        < no projects or files >
+      </div>
+    </div>
     <script>
+      var path = [];
+      var files = [
+        {
+          type: "folder",
+          name: "Example Project",
+          created: new Date().getTime(),
+          contents: [
+            {
+              type: "file",
+              name: "index",
+              extension: "html",
+              created: new Date().getTime(),
+              contents: "<!DOCTYPE html>\n<!-- This is an example HTML project. Feel free to edit it! -->\n<html>\n  <head>\n    <title>An Example Project!</title>\n  <link rel=\"stylesheet\" href=\"stylesheet.css\">\n  </head>\n  <body>\n    <h1>Hello World!</h1>\n  </body>\n</html>"
+            }, {
+              type: "file",
+              name: "stylesheet",
+              extension: "css",
+              created: new Date().getTime(),
+              contents: "\n/* Here's an example CSS file within the HTML project. Feel free to edit it! */\n\nbody {\n  padding: 100px;\n}\nh1 {\n  font-family: Helvetica;\n}"
+            }
+          ]
+        }
+      ];
+
+      var account = {
+        loggedIn: false,
+        username: ""/*,
+        stayLoggedIn: false*/
+      };
+
+      function getPath(path) {
+        if (path === undefined) {
+          return files;
+        }
+        var current = files;
+        for (var i = 0; i < path.length; i++) {
+          if (i > 0 && current.contents && current.type === "folder") {
+            current = current.contents;
+          }
+          if (current[path[i]]) {
+            current = current[path[i]];
+          }
+        }
+        return current;
+      }
+
+      function toggle(cl) {
+        var el = document.getElementsByClassName(cl);
+        for (var i = 0; i < el.length; i++) {
+            if (el[i].classList.contains(cl + "-active")) {
+                el[i].classList.remove(cl + "-active");
+            } else {
+                el[i].classList.add(cl + "-active");
+            }
+        }
+      }
       function mousePos(e) {
         if (!e) {
           var e = window.event;
         }
         var mouseX = 0;
         var mouseY = 0;
-        
+
         if (e.pageX || e.pageY) {
           mouseX = e.pageX;
           mouseY = e.pageY;
@@ -137,19 +345,58 @@
           y: mouseY
         }
       }
+      var optionOpen = "";
+      function toggleCover(icon) {
+        // Open:
+        document.getElementsByClassName(icon + "-icon-container")[0].onclick = function() {
+          if (optionOpen === "") {
+            optionOpen = icon;
+            toggle("cover");
+            toggle(icon);
+            document.getElementsByClassName("cover")[0].style.pointerEvents = "auto";
+            document.getElementsByClassName(icon)[0].style.pointerEvents = "auto";
+          }
+        }
+        // Close:
+        document.getElementsByClassName(icon + "-icon-container-close")[0].onclick = function() {
+          if (optionOpen === icon) {
+            optionOpen = "";
+            toggle("cover");
+            toggle(icon);
+            document.getElementsByClassName("cover")[0].style.pointerEvents = "none";
+            document.getElementsByClassName(icon)[0].style.pointerEvents = "none";
+          }
+        }
+      }
       window.onload = function() {
+        // Options:
+        toggleCover("settings"); // Settings
+        toggleCover("account"); // Account
+        toggleCover("download"); // Download
+        // Run:
+        document.getElementsByClassName("run-icon-container")[0].onclick = function() {
+          alert("This feature does not work yet.");
+        }
+
+        // Context Menu:
         document.getElementsByClassName("sidebar")[0].oncontextmenu = function(e) {
           e.preventDefault();
-          
+
           var mp = mousePos(e);
           var mouseX = mp.x, mouseY = mp.y;
           var context = document.getElementsByClassName("context")[0];
-          
+
           context.style.display = "block";
           context.style.left = mouseX + "px";
           context.style.top = mouseY + "px";
-          
+
           console.log(mouseX + " " + mouseY);
+        };
+        document.onclick = function(e) {
+          var button = e.which || e.button;
+          if (button === 1) {
+            document.getElementsByClassName("context")[0].style.display = "none";
+          }
         };
       };
     </script>
