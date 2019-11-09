@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- https://css-tricks.com/using-css-transitions-auto-dimensions/ -->
 <html>
   <head>
     <title>ReEdit</title>
@@ -61,6 +62,7 @@
         font-weight: 400;
       }
 
+      /* Options / Option Icons */
       .icon {
         width: 30px;
         height: 30px;
@@ -98,6 +100,40 @@
         /* display: none; */
       }
 
+      /* Cover */
+      .cover {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0);
+        width: calc(100vw - 200px);
+        height: calc(100vh - 200px);
+        margin: 0px;
+        padding: 100px;
+        top: 0px;
+        left: 0px;
+        opacity: 0;
+        z-index: 3;
+        pointer-events: none;
+      }
+      .cover-active {
+        background-color: rgba(250, 250, 250, 1);
+        opacity: 1;
+      }
+      .settings, .account, .download {
+        position: absolute;
+        width: calc(100vw - 200px);
+        height: calc(100vh - 200px);
+        margin: 0px;
+        padding: 100px;
+        top: 0px;
+        left: 0px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .settings-active, .account-active, .download-active {
+        opacity: 1;
+      }
+
+      /* Header */
       .header {
         position: relative;
         background-color: rgb(250, 250, 250);
@@ -119,6 +155,7 @@
         flex-grow: 1;
       }
 
+      /* Content */
       .content {
         background-color: rgb(255, 255, 255);
         width: 100%;
@@ -126,6 +163,8 @@
         margin: 0px;
         padding: 0px;
       }
+
+      /* Sidebar: */
       .sidebar {
         position: relative;
         background-color: rgb(250, 250, 250);
@@ -134,7 +173,39 @@
         padding: 25px;
         animation: slide-left 2s forwards, 2s shadow-in 2s forwards;
         z-index: 1;
+        overflow: scroll;
       }
+      .sidebar-folder-container {
+        margin: 0px;
+        padding: 0px;
+      }
+      .sidebar-folder, .sidebar-file {
+        background-color: rgb(250, 250, 250);
+        padding: 10px 10px 10px 10px;
+        border-radius: 10px;
+        transition: all 0.5s;
+      }
+      .sidebar-folder:hover, .sidebar-file:hover {
+        background-color: rgb(225, 225, 225);
+        cursor: pointer;
+      }
+      .sidebar-folder:active, .sidebar-file:active {
+        background-color: rgb(200, 200, 200);
+        cursor: pointer;
+        box-shadow: 0px 0px 10px rgba(200, 200, 200);
+      }
+      .sidebar-folder-contents {
+        background-color: rgb(250, 250, 250);
+        padding: 0px 0px 0px 25px;
+        overflow: hidden;
+      }
+      .sidebar-folder-contents-active {
+        opacity: 0;
+      }
+      .sidebar::selection, .sidebar-folder::selection, .sidebar-file::selection {
+        background-color: rgba(0, 0, 0, 0);
+      }
+
       .editor-info {
         /*background-color: rgb(250, 250, 250);
         width: calc(100% - 50px);
@@ -142,39 +213,6 @@
         margin: 0px;
         padding: 25px 25px 23px 25px;
         border-bottom: 2px solid rgb(240, 240, 240);*/
-      }
-
-      .cover {
-        position: absolute;
-        background-color: rgba(0, 0, 0, 0);
-        width: calc(100vw - 200px);
-        height: calc(100vh - 200px);
-        margin: 0px;
-        padding: 100px;
-        top: 0px;
-        left: 0px;
-        opacity: 0;
-        z-index: 3;
-        pointer-events: none;
-      }
-      .cover-active {
-        background-color: rgba(250, 250, 250, 1);
-        opacity: 1;
-      }
-
-      .settings, .account, .download {
-        position: absolute;
-        width: calc(100vw - 200px);
-        height: calc(100vh - 200px);
-        margin: 0px;
-        padding: 100px;
-        top: 0px;
-        left: 0px;
-        opacity: 0;
-        pointer-events: none;
-      }
-      .settings-active, .account-active, .download-active {
-        opacity: 1;
       }
 
       /* Context Menu */
@@ -227,8 +265,7 @@
         <div class="editor-tabs">
         </div>
         <div class="editor-text-container">
-          <div class="">
-          </div>
+
         </div>
         <div class="editor-info">
         </div>
@@ -273,35 +310,139 @@
     <script>
       // File Handling:
         var path = [];
-        var files = [
-          {
-            type: "folder",
-            name: "Example Project",
-            created: new Date().getTime(),
-            open: true,
-            contents: [
-              {
-                type: "file",
-                name: "index",
-                extension: "html",
-                created: new Date().getTime(),
-                contents: "<!DOCTYPE html>\n<!-- This is an example HTML project. Feel free to edit it! -->\n<html>\n  <head>\n    <title>An Example Project!</title>\n  <link rel=\"stylesheet\" href=\"stylesheet.css\">\n  </head>\n  <body>\n    <h1>Hello World!</h1>\n  </body>\n</html>"
-              }, {
-                type: "file",
-                name: "stylesheet",
-                extension: "css",
-                created: new Date().getTime(),
-                contents: "\n/* Here's an example CSS file within the HTML project. Feel free to edit it! */\n\nbody {\n  padding: 100px;\n}\nh1 {\n  font-family: Helvetica;\n}"
-              }, {
-                type: "folder",
-                name: "resources",
-                created: new Date().getTime(),
-                open: true,
-                contents: []
-              }
-            ]
-          }
-        ];
+        var files = {
+          type: "folder",
+          name: "Files",
+          created: new Date().getTime(),
+          open: true,
+          contents: [
+            {
+              type: "folder",
+              name: "Example Project",
+              created: new Date().getTime(),
+              open: true,
+              contents: [
+                {
+                  type: "file",
+                  name: "index",
+                  extension: "html",
+                  created: new Date().getTime(),
+                  contents: "<!DOCTYPE html>\n<!-- This is an example HTML project. Feel free to edit it! -->\n<html>\n  <head>\n    <title>An Example Project!</title>\n  <link rel=\"stylesheet\" href=\"stylesheet.css\">\n  </head>\n  <body>\n    <h1>Hello World!</h1>\n  </body>\n</html>"
+                }, {
+                  type: "file",
+                  name: "stylesheet",
+                  extension: "css",
+                  created: new Date().getTime(),
+                  contents: "\n/* Here's an example CSS file within the HTML project. Feel free to edit it! */\n\nbody {\n  padding: 100px;\n}\nh1 {\n  font-family: Helvetica;\n}"
+                }, {
+                  type: "folder",
+                  name: "resources",
+                  created: new Date().getTime(),
+                  open: true,
+                  contents: [
+                    {
+                      type: "file",
+                      name: "resource1",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[1] This is an example resource file."
+                    }, {
+                      type: "file",
+                      name: "resource2",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[2] This is an example resource file."
+                    }, {
+                      type: "file",
+                      name: "resource3",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[3] This is an example resource file."
+                    }
+                  ]
+                }, {
+                  type: "folder",
+                  name: "resources",
+                  created: new Date().getTime(),
+                  open: true,
+                  contents: [
+                    {
+                      type: "file",
+                      name: "resource1",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[1] This is an example resource file."
+                    }, {
+                      type: "file",
+                      name: "resource2",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[2] This is an example resource file."
+                    }, {
+                      type: "file",
+                      name: "resource3",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[3] This is an example resource file."
+                    }
+                  ]
+                }, {
+                  type: "folder",
+                  name: "resources",
+                  created: new Date().getTime(),
+                  open: true,
+                  contents: [
+                    {
+                      type: "file",
+                      name: "resource1",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[1] This is an example resource file."
+                    }, {
+                      type: "file",
+                      name: "resource2",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[2] This is an example resource file."
+                    }, {
+                      type: "file",
+                      name: "resource3",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[3] This is an example resource file."
+                    }
+                  ]
+                }, {
+                  type: "folder",
+                  name: "resources",
+                  created: new Date().getTime(),
+                  open: true,
+                  contents: [
+                    {
+                      type: "file",
+                      name: "resource1",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[1] This is an example resource file."
+                    }, {
+                      type: "file",
+                      name: "resource2",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[2] This is an example resource file."
+                    }, {
+                      type: "file",
+                      name: "resource3",
+                      extension: "txt",
+                      created: new Date().getTime(),
+                      contents: "[3] This is an example resource file."
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        };
 
         var account = {
           loggedIn: false,
@@ -315,7 +456,7 @@
           }
           var current = files;
           for (var i = 0; i < path.length; i++) {
-            if (i > 0 && current.contents && current.type === "folder") {
+            if (current.contents && current.type === "folder") {
               current = current.contents;
             }
             if (current[path[i]]) {
@@ -325,40 +466,70 @@
           return current;
         }
 
-        function displayFolder(data, path) {
+        function displayFile(data, path) {
+          // Get the parent's path (the current path without the last value):
           var parentPath = [];
           for (var i = 0; i < path.length - 1; i++) {
             parentPath.push(path[i]);
           }
-          var parent = document.getElementById("folder-" + parentPath.join("-")) || document.getElementsByClassName("sidebar")[0];
-          var id = data.type + "-" + path.join("-");
+
+          // Get the parent element and the ID for the new element:
+          var parent = document.getElementById("folder_" + parentPath.join("-") + "_contents") || document.getElementsByClassName("sidebar")[0];
+          var id = data.type + "_" + path.join("-");
+
           console.log(id);
-          console.log(parent);
+
+          // Create the new element:
+          if (data.type === "folder") {
+            parent.innerHTML += `
+              <div class="sidebar-folder-container" id="` + (id + "_container") + `">
+                <div class="sidebar-folder" id="` + id + `">
+                  ` + data.name + `
+                </div>
+                <div class="t0-5 sidebar-folder-contents" id="` + (id + "_contents") + `">
+
+                </div>
+              </div>
+            `;
+            setTimeout(function() {
+              document.getElementById(id).onclick = function() {
+                toggle(id + "_contents", "sidebar-folder-contents");
+              };
+            }, 0);
+          } else {
+            parent.innerHTML += `
+              <div class="sidebar-file" id="` + id + `">
+                ` + (data.name + "." + data.extension) + `
+              </div>
+            `;
+          }
         }
-        function displayFiles(path) {
-          var p = getPath(path);
+        function displayAllFiles(path) {
+          var p = getPath(path).contents;
           for (var i = 0; i < p.length; i++) {
+            var newPath = [];
+            for (var j = 0; j < path.length; j++) {
+              newPath.push(path[j]);
+            }
+            newPath.push(i);
+            displayFile(p[i], newPath);
             if (p[i].type === "folder") {
-              displayFolder(p[i], path);
-              var tempPath = [];
-              for (var j = 0; j < path.length; j++) {
-                tempPath.push(path[j]);
-              }
-              tempPath.push(i);
-              displayFiles(tempPath);
+              displayAllFiles(newPath);
             }
           }
         }
+        displayAllFiles(path);
 
       // Event Handling:
-        function toggle(cl) {
-          var el = document.getElementsByClassName(cl);
+        function toggle(cl, ocl) {
+          var el = document.getElementsByClassName(cl).length > 0 ? document.getElementsByClassName(cl) : [document.getElementById(cl)];
+          ocl = ocl ? (ocl + "-active") : (cl + "-active");
           for (var i = 0; i < el.length; i++) {
-              if (el[i].classList.contains(cl + "-active")) {
-                  el[i].classList.remove(cl + "-active");
-              } else {
-                  el[i].classList.add(cl + "-active");
-              }
+            if (el[i].classList.contains(ocl)) {
+              el[i].classList.remove(ocl);
+            } else {
+              el[i].classList.add(ocl);
+            }
           }
         }
         function mousePos(e) {
@@ -408,7 +579,7 @@
           toggleCover("settings"); // Settings
           toggleCover("account"); // Account
           toggleCover("download"); // Download
-          // Run:
+          // Run
           document.getElementsByClassName("run-icon-container")[0].onclick = function() {
             alert("This feature does not work yet.");
           }
