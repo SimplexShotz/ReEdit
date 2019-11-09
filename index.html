@@ -36,6 +36,14 @@
           height: calc(100vh - 150px);
         }
       }
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
       .t0-5 {
         -webkit-transition: all 0.5s cubic-bezier(0.2, 0.6, 0.3, 1);
         -moz-transition: all 0.5s cubic-bezier(0.2, 0.6, 0.3, 1);
@@ -157,6 +165,7 @@
 
       /* Content */
       .content {
+        display: flex;
         background-color: rgb(255, 255, 255);
         width: 100%;
         height: calc(100vh - 100px);
@@ -197,22 +206,48 @@
       .sidebar-folder-contents {
         background-color: rgb(250, 250, 250);
         padding: 0px 0px 0px 25px;
-        overflow: hidden;
+        overflow-x: scroll;
       }
       .sidebar-folder-contents-active {
-        opacity: 0;
+        height: 0px;
       }
       .sidebar::selection, .sidebar-folder::selection, .sidebar-file::selection {
         background-color: rgba(0, 0, 0, 0);
       }
 
-      .editor-info {
-        /*background-color: rgb(250, 250, 250);
-        width: calc(100% - 50px);
+      /* Editor */
+      .editor-container {
+        width: calc(100vw - 20% - 50px);
+        display: flex;
+        flex-direction: column;
+        margin: 0px;
+        padding: 0px;
+        opacity: 0;
+        animation: 2s fade-in 2s forwards;
+      }
+      .editor-tabs {
+        display: flex;
+        background-color: rgb(250, 250, 250);
+        width: 100%;
         height: 50px;
         margin: 0px;
-        padding: 25px 25px 23px 25px;
-        border-bottom: 2px solid rgb(240, 240, 240);*/
+        padding: 0px;
+      }
+      .editor-text-container {
+        background-color: rgb(255, 255, 255);
+        width: 100%;
+        height: calc(100vh - 200px);
+        margin: 0px;
+        padding: 0px;
+      }
+      .editor-info {
+        position: relative;
+        background-color: rgb(250, 250, 250);
+        width: calc(100% - 10px);
+        height: 40px;
+        margin: 0px;
+        padding: 5px;
+        /*box-shadow: 0px 0px 10px rgba(200, 200, 200);*/
       }
 
       /* Context Menu */
@@ -310,16 +345,19 @@
     <script>
       // File Handling:
         var path = [];
+        var tabs = [];
         var files = {
           type: "folder",
           name: "Files",
           created: new Date().getTime(),
+          saved: new Date().getTime(),
           open: true,
           contents: [
             {
               type: "folder",
               name: "Example Project",
               created: new Date().getTime(),
+              saved: new Date().getTime(),
               open: true,
               contents: [
                 {
@@ -327,17 +365,20 @@
                   name: "index",
                   extension: "html",
                   created: new Date().getTime(),
+                  saved: new Date().getTime(),
                   contents: "<!DOCTYPE html>\n<!-- This is an example HTML project. Feel free to edit it! -->\n<html>\n  <head>\n    <title>An Example Project!</title>\n  <link rel=\"stylesheet\" href=\"stylesheet.css\">\n  </head>\n  <body>\n    <h1>Hello World!</h1>\n  </body>\n</html>"
                 }, {
                   type: "file",
                   name: "stylesheet",
                   extension: "css",
                   created: new Date().getTime(),
+                  saved: new Date().getTime(),
                   contents: "\n/* Here's an example CSS file within the HTML project. Feel free to edit it! */\n\nbody {\n  padding: 100px;\n}\nh1 {\n  font-family: Helvetica;\n}"
                 }, {
                   type: "folder",
                   name: "resources",
                   created: new Date().getTime(),
+                  saved: new Date().getTime(),
                   open: true,
                   contents: [
                     {
@@ -345,18 +386,21 @@
                       name: "resource1",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[1] This is an example resource file."
                     }, {
                       type: "file",
                       name: "resource2",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[2] This is an example resource file."
                     }, {
                       type: "file",
                       name: "resource3",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[3] This is an example resource file."
                     }
                   ]
@@ -364,6 +408,7 @@
                   type: "folder",
                   name: "resources",
                   created: new Date().getTime(),
+                  saved: new Date().getTime(),
                   open: true,
                   contents: [
                     {
@@ -371,18 +416,21 @@
                       name: "resource1",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[1] This is an example resource file."
                     }, {
                       type: "file",
                       name: "resource2",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[2] This is an example resource file."
                     }, {
                       type: "file",
                       name: "resource3",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[3] This is an example resource file."
                     }
                   ]
@@ -390,6 +438,7 @@
                   type: "folder",
                   name: "resources",
                   created: new Date().getTime(),
+                  saved: new Date().getTime(),
                   open: true,
                   contents: [
                     {
@@ -397,18 +446,21 @@
                       name: "resource1",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[1] This is an example resource file."
                     }, {
                       type: "file",
                       name: "resource2",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[2] This is an example resource file."
                     }, {
                       type: "file",
                       name: "resource3",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[3] This is an example resource file."
                     }
                   ]
@@ -416,6 +468,7 @@
                   type: "folder",
                   name: "resources",
                   created: new Date().getTime(),
+                  saved: new Date().getTime(),
                   open: true,
                   contents: [
                     {
@@ -423,18 +476,21 @@
                       name: "resource1",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[1] This is an example resource file."
                     }, {
                       type: "file",
                       name: "resource2",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[2] This is an example resource file."
                     }, {
                       type: "file",
                       name: "resource3",
                       extension: "txt",
                       created: new Date().getTime(),
+                      saved: new Date().getTime(),
                       contents: "[3] This is an example resource file."
                     }
                   ]
@@ -477,8 +533,6 @@
           var parent = document.getElementById("folder_" + parentPath.join("-") + "_contents") || document.getElementsByClassName("sidebar")[0];
           var id = data.type + "_" + path.join("-");
 
-          console.log(id);
-
           // Create the new element:
           if (data.type === "folder") {
             parent.innerHTML += `
@@ -502,6 +556,11 @@
                 ` + (data.name + "." + data.extension) + `
               </div>
             `;
+            setTimeout(function() {
+              document.getElementById(id).onclick = function() {
+                openFile(path);
+              };
+            }, 0);
           }
         }
         function displayAllFiles(path) {
@@ -519,6 +578,24 @@
           }
         }
         displayAllFiles(path);
+
+        function openFile(path) {
+          openTab(path);
+          openEditor(path);
+        }
+        function openTab(path) {
+          var data = getPath(path);
+          tabs.push(path);
+          document.getElementsByClassName("editor-tabs")[0].innerHTML += `
+            <div class="editor-tab">
+              ` + (data.name + "." + data.extension) + `
+            </div>
+          `;
+          // [TODO]: display tab
+        }
+        function openEditor(path) {
+          document.getElementsByClassName("editor-text-container")[0].innerText = getPath(path).contents;
+        }
 
       // Event Handling:
         function toggle(cl, ocl) {
