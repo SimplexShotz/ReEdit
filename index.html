@@ -206,6 +206,9 @@
       .sidebar-file-open {
         background-color: rgb(240, 240, 240);
       }
+      .sidebar-linked {
+        background-color: rgb(225, 225, 225);
+      }
       .sidebar-folder-contents {
         background-color: rgb(250, 250, 250);
         padding: 0px 0px 0px 25px;
@@ -231,7 +234,7 @@
       .editor-tabs {
         display: flex;
         background-color: rgb(250, 250, 250);
-        width: 100%;
+        min-width: 100%;
         height: 50px;
         margin: 0px;
         padding: 0px;
@@ -239,13 +242,12 @@
       }
       .editor-tab {
         background-color: rgb(250, 250, 250);
-        width: 100px;
+        min-width: 100px;
         height: 30px;
         margin: 0px;
         padding: 10px;
         text-align: center;
         line-height: 30px;
-        overflow-x: scroll;
         transition: all 0.5s, border 0s;
         /* Fix animation fragments: */
         backface-visibility: hidden;
@@ -699,8 +701,8 @@
 
         */
         function removeClass(cl) {
-          if (document.getElementsByClassName(cl)[0]) {
-            document.getElementsByClassName(cl)[0].classList.remove(cl);
+          for (var i = 0; i < document.getElementsByClassName(cl).length; i++) {
+            document.getElementsByClassName(cl)[i].classList.remove(cl);
           }
         }
         function addClass(cl, el) {
@@ -733,10 +735,11 @@
         function displayAllTabs() {
           document.getElementsByClassName("editor-tabs")[0].innerHTML = "";
           var id, path, data;
+          // [TODO]: after tabs are dragged, the currently selected one loses it class (this needs to be fixed!)
           for (var i = 0; i < tabs.length; i++) {
             id = tabs[i], path = objectifyPath(id), data = getPath(path);
             document.getElementsByClassName("editor-tabs")[0].innerHTML += `
-              <div class="editor-tab" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)">
+              <div class="editor-tab" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)" onmouseover="addClass('sidebar-linked', document.getElementById('file_` + id + `'))" onmouseout="removeClass('sidebar-linked')">
                 ` + (data.name + "." + data.extension) + `
               </div>
             `;
@@ -783,6 +786,7 @@
 
         */
         function tabDragStart(id) {
+          removeClass('sidebar-linked'); // this is an edge case; onmouseout is not called when an element is dragged
           tabDrag.dragging = {
             el: document.getElementById("tab_" + id),
             i: tabs.indexOf(id)
