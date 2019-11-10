@@ -201,7 +201,7 @@
       .sidebar-folder:active, .sidebar-file:active {
         background-color: rgb(200, 200, 200);
         cursor: pointer;
-        box-shadow: 0px 0px 10px rgba(200, 200, 200);
+        /*box-shadow: 0px 0px 10px rgba(200, 200, 200);*/
       }
       .sidebar-file-open {
         background-color: rgb(240, 240, 240);
@@ -235,6 +235,39 @@
         height: 50px;
         margin: 0px;
         padding: 0px;
+        overflow-x: scroll;
+      }
+      .editor-tab {
+        background-color: rgb(250, 250, 250);
+        width: 100px;
+        height: 30px;
+        margin: 0px;
+        padding: 10px;
+        text-align: center;
+        line-height: 30px;
+        overflow-x: scroll;
+        transition: all 0.5s, border 0s;
+        /* Fix animation fragments: */
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+        -moz-backface-visibility: hidden;
+      }
+      .editor-tab:hover {
+        background-color: rgb(225, 225, 225);
+        cursor: pointer;
+      }
+      .editor-tab:active {
+        background-color: rgb(200, 200, 200);
+        cursor: pointer;
+      }
+      .editor-tab-open {
+        background-color: rgb(255, 255, 255);
+      }
+      .editor-tab-over-left {
+        border-left: 5px solid rgb(0, 0, 0);
+      }
+      .editor-tab-over-right {
+        border-right: 5px solid rgb(0, 0, 0);
       }
       .editor-text-container {
         background-color: rgb(255, 255, 255);
@@ -605,7 +638,7 @@
           if (data.type === "folder") {
             parent.innerHTML += `
               <div class="sidebar-folder-container" id="` + (id + "_container") + `">
-                <div class="sidebar-folder" id="` + id + `">
+                <div class="sidebar-folder" id="` + id + `" onclick="toggle('` + id + `_contents', 'sidebar-folder-contents')">
                   ` + data.name + `
                 </div>
                 <div class="t0-5 sidebar-folder-contents" id="` + (id + "_contents") + `">
@@ -613,22 +646,12 @@
                 </div>
               </div>
             `;
-            setTimeout(function() {
-              document.getElementById(id).onclick = function() {
-                toggle(id + "_contents", "sidebar-folder-contents");
-              };
-            }, 0);
           } else {
             parent.innerHTML += `
-              <div class="sidebar-file" id="` + id + `">
+              <div class="sidebar-file" id="` + id + `" onclick="openFile([` + path  + `])">
                 ` + (data.name + "." + data.extension) + `
               </div>
             `;
-            setTimeout(function() {
-              document.getElementById(id).onclick = function() {
-                openFile(path);
-              };
-            }, 0);
           }
         }
         function displayAllFiles(path) {
@@ -651,6 +674,13 @@
         /*
 
           EDITOR DISPLAY:
+           removeClass(cl)
+            = Removes the given class from the element that currently has that class
+            - cl: the class to be removed
+           addClass(cl, el)
+            = Adds the given class to the given element
+            - cl: the class to be added
+            - el: the new element the given class should be added to
            switchClass(cl, el)
             = Removes the given class from the element that currently has that class, then adds it to the given element
             - cl: the class to be switched
@@ -661,16 +691,24 @@
            openTab(path)
             = Displays the file at the given path in the tab bar
             - path: the path to the file
+           displayAllTabs()
+            = Displays all the open tabs in the tab bar
            openEditor(path)
             = Displays the file at the given path's contents in the editor
             - path: the path to the file
-        
+
         */
-        function switchClass(cl, el) {
+        function removeClass(cl) {
           if (document.getElementsByClassName(cl)[0]) {
             document.getElementsByClassName(cl)[0].classList.remove(cl);
           }
+        }
+        function addClass(cl, el) {
           el.classList.add(cl);
+        }
+        function switchClass(cl, el) {
+          removeClass(cl);
+          addClass(cl, el);
         }
         function openFile(path) {
           switchClass("sidebar-file-open", document.getElementById(getID(path)));
@@ -678,25 +716,137 @@
           openEditor(path);
         }
         function openTab(path) {
-          var data = getPath(path);
+          // var data = getPath(path);
           var tabExists = tabs.indexOf(stringifyPath(path));
           var id = stringifyPath(path);
           if (tabExists === -1) {
             tabs.push(id);
+            displayAllTabs();
+            // document.getElementsByClassName("editor-tabs")[0].innerHTML += `
+            //   <div class="editor-tab" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)">
+            //     ` + (data.name + "." + data.extension) + `
+            //   </div>
+            // `;
+          }
+          switchClass("editor-tab-open", document.getElementById("tab_" + id));
+        }
+        function displayAllTabs() {
+          document.getElementsByClassName("editor-tabs")[0].innerHTML = "";
+          var id, path, data;
+          for (var i = 0; i < tabs.length; i++) {
+            id = tabs[i], path = objectifyPath(id), data = getPath(path);
             document.getElementsByClassName("editor-tabs")[0].innerHTML += `
-              <div class="editor-tab editor-tab-open" id="tab_` + id + `">
+              <div class="editor-tab" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)">
                 ` + (data.name + "." + data.extension) + `
               </div>
             `;
-          } else {
-            switchClass("editor-tab-open", document.getElementById("tab_" + id));
           }
         }
         function openEditor(path) {
           document.getElementsByClassName("editor-text-container")[0].innerText = getPath(path).contents;
         }
 
+        /*
+
+          TAB DRAGGING VARIABLES:
+           tabDrag{}
+            = Dragging data
+            - contains: dragging (the tab being dragged) and over (the tab being dragged over) data
+              - .el: the element being dragged/dragged over
+              - .i: the index in the tabs[] array of the tab being dragged/dragged over
+
+        */
+        var tabDrag = {
+          dragging: {
+            el: false,
+            i: false
+          },
+          over: {
+            el: false,
+            i: false
+          }
+        };
+
+        /*
+
+          TAB DRAGGING FUNCTIONS:
+           tabDragStart(id)
+            = Sets the tabDrag.dragging object when a tab is picked up to be dragged
+            - id: the id of the tab
+           tabDragOver(e)
+            = Sets the tabDrag.over object when a tab is being dragged over and displays which side the tab that is being dragged will be dropped on
+            - e: the event data for the element being dragged over
+            - example: [asumming a tab is being dragged over the right side of tab 1] tabDragStart(e) -> tabDrag.dragging{} = {[data]}, black border on the right side of tab 1
+           tabDragEnd(e)
+            = Drops the tab that is being dragged where the user wants it and resets element classes and the tabDrag object
+            - e: the event data for the element being dragged
+
+        */
+        function tabDragStart(id) {
+          tabDrag.dragging = {
+            el: document.getElementById("tab_" + id),
+            i: tabs.indexOf(id)
+          };
+        }
+        function tabDragOver(e) {
+          e.preventDefault();
+          tabDrag.over = {
+            el: e.target,
+            i: tabs.indexOf(e.target.id.split("_")[1])
+          };
+          if (tabDrag.dragging.el.id !== tabDrag.over.el.id) {
+            if (e.clientX < tabDrag.over.el.offsetLeft + tabDrag.over.el.offsetWidth / 2) { // Left
+              if (!document.getElementsByClassName("editor-tab-over-left")[0] || tabDrag.over.el.id !== document.getElementsByClassName("editor-tab-over-left")[0].id) {
+                removeClass("editor-tab-over-right");
+                removeClass("editor-tab-over-left");
+                addClass("editor-tab-over-left", tabDrag.over.el);
+              }
+            } else { // Right
+              if (!document.getElementsByClassName("editor-tab-over-right")[0] || tabDrag.over.el.id !== document.getElementsByClassName("editor-tab-over-right")[0].id) {
+                removeClass("editor-tab-over-right");
+                removeClass("editor-tab-over-left");
+                addClass("editor-tab-over-right", tabDrag.over.el);
+              }
+            }
+          }
+        }
+        function tabDragEnd(e) {
+          var tabDragPath = tabs.splice(tabDrag.dragging.i, 1)[0];
+          if (tabDrag.dragging.el.id !== tabDrag.over.el.id) {
+            if (e.clientX < tabDrag.over.el.offsetLeft + tabDrag.over.el.offsetWidth / 2) { // Left
+              tabs.splice(tabDrag.over.i, 0, tabDragPath);
+            } else { // Right
+              tabs.splice(tabDrag.over.i + 1, 0, tabDragPath);
+            }
+            displayAllTabs();
+          }
+          removeClass("editor-tab-over-right");
+          removeClass("editor-tab-over-left");
+          tabDrag = {
+            dragging: {
+              el: false,
+              i: false
+            },
+            over: {
+              el: false,
+              i: false
+            }
+          };
+        }
+
       // Event Handling:
+        /*
+
+          HELPER FUNCTIONS:
+           toggle(cl, ocl)
+            = Toggles the class "given class + '-active'" on the elements with the given class
+            - cl: the class; elements with this class will have the class "cl + '-active'" toggled
+            - ocl (optional): overrides the class that elements with the given class should have toggled ("ocl + '-active'" will be toggled instead of "cl + '-active'")
+           mousePos(e)
+            = Returns the position of the mouse
+            - e: the event data
+
+        */
         function toggle(cl, ocl) {
           var el = document.getElementsByClassName(cl).length > 0 ? document.getElementsByClassName(cl) : [document.getElementById(cl)];
           ocl = ocl ? (ocl + "-active") : (cl + "-active");
@@ -727,6 +877,15 @@
             y: mouseY
           }
         }
+
+        /*
+
+          COVER DISPLAY:
+           toggleCover(icon)
+            = Toggles the cover and displays the given icon's tab
+            - icon: the name of the icon whose tab should be displayed on the cover (example: "settings")
+
+        */
         var optionOpen = "";
         function toggleCover(icon) {
           // Open:
@@ -750,17 +909,36 @@
             }
           }
         }
+
+        /*
+
+          ON PAGE LOAD:
+           #options
+            = Sets the functions that toggle the cover when that option's icon is clicked
+            - #options.settings: sets the functions that toggle the settings cover when the settings icon is clicked
+            - #options.account: sets the functions that toggle the account cover when the account icon is clicked
+            - #options.download: sets the functions that toggle the download cover when the download icon is clicked
+           #run
+            = Sets the function that runs when the run icon is clicked
+           #context
+            = Sets the functions that open/close the context menu
+            - #context.open: displays the context menu at the mouse position when the contextmenu event is fired
+            - #context.close: hides the context menu when the click event is fired using the left mouse button
+
+        */
         window.onload = function() {
-          // Options:
-          toggleCover("settings"); // Settings
-          toggleCover("account"); // Account
-          toggleCover("download"); // Download
-          // Run
+          // #options:
+          toggleCover("settings"); // .settings
+          toggleCover("account"); // .account
+          toggleCover("download"); // .download
+
+          // #run:
           document.getElementsByClassName("run-icon-container")[0].onclick = function() {
             alert("This feature does not work yet.");
           }
 
-          // Context Menu:
+          // #context
+          // .open
           document.getElementsByClassName("sidebar")[0].oncontextmenu = function(e) {
             e.preventDefault();
 
@@ -774,6 +952,7 @@
 
             console.log(mouseX + " " + mouseY);
           };
+          // .close
           document.onclick = function(e) {
             var button = e.which || e.button;
             if (button === 1) {
