@@ -347,6 +347,24 @@
     </div>
     <script>
       // File Handling:
+        /*
+
+         VARIABLE SETUP:
+          path[]
+           = The path to the currently open file
+           - contains: numeric indicies
+           - example: [0, 1, 4] would lead to files.contents[0].contents[1].contents[4]
+          tabs[]
+           = An array of open tabs
+           - contains: path arrays
+          files{}
+           = An object that stores all the files
+           - contains: folder and file objects
+          account{}
+           = Account data
+           - label: [TODO]
+
+        */
         var path = [];
         var tabs = [];
         var files = {
@@ -502,13 +520,43 @@
             }
           ]
         };
-
         var account = {
           loggedIn: false,
           username: ""/*,
           stayLoggedIn: false*/
         };
 
+        /*
+
+         PATH CONVERSIONS:
+          stringifyPath(path)
+           = Takes a path and turns it into a string
+           - path: the path to the file
+          objectifyPath(path)
+           = Takes a stringified path and turns it back into a path
+           - path: the stringified path
+
+        */
+        function stringifyPath(path) {
+          return path.join("-");
+        }
+        function objectifyPath(path) {
+          return path.split("-");
+        }
+
+        /*
+
+          GET FUNCTIONS:
+           getPath(path)
+            = Returns the file/folder at the given path
+            - path: the path to the file
+            - example: getPath([0, 1]) -> the file at files.contents[0].contents[1]
+           getID(path)
+            = Returns the ID associated with that path
+            - path: the path to the file
+            - example: [assuming the file at the path [0, 1] is a folder] getID([0, 1]) -> "folder_0-1"
+
+        */
         function getPath(path) {
           if (path === undefined) {
             return files;
@@ -524,12 +572,25 @@
           }
           return current;
         }
-
         function getID(path) {
           var data = getPath(path);
-          return data.type + "_" + path.join("-");
+          return data.type + "_" + stringifyPath(path);
         }
-        function displayFile(data, path) {
+
+        /*
+
+          SIDEBAR DISPLAY:
+           displayFile(path)
+            = Displays the file/folder at the given path in the sidebar
+            - path: the path to the file
+           displayAllFiles(path)
+            = Displays all files within the given path in the sidebar
+            - path: the path to the file
+
+        */
+        function displayFile(path) {
+          var data = getPath(path);
+
           // Get the parent's path (the current path without the last value):
           var parentPath = [];
           for (var i = 0; i < path.length - 1; i++) {
@@ -537,7 +598,7 @@
           }
 
           // Get the parent element and the ID for the new element:
-          var parent = document.getElementById("folder_" + parentPath.join("-") + "_contents") || document.getElementsByClassName("sidebar")[0];
+          var parent = document.getElementById("folder_" + stringifyPath(parentPath) + "_contents") || document.getElementsByClassName("sidebar")[0];
           var id = getID(path);
 
           // Create the new element:
@@ -574,35 +635,62 @@
           var p = getPath(path).contents;
           for (var i = 0; i < p.length; i++) {
             var newPath = [];
-            for (var j = 0; j < path.length; j++) {
+            for (var j = 0; j < (path ? path.length : 0); j++) {
               newPath.push(path[j]);
             }
             newPath.push(i);
-            displayFile(p[i], newPath);
+            displayFile(newPath);
             if (p[i].type === "folder") {
               displayAllFiles(newPath);
             }
           }
         }
-        displayAllFiles(path);
+        // Display all the files in the sidebar:
+        displayAllFiles();
 
-        function openFile(path) {
-          if (document.getElementsByClassName("sidebar-file-open")[0]) {
-            document.getElementsByClassName("sidebar-file-open")[0].classList.remove("sidebar-file-open");
+        /*
+
+          EDITOR DISPLAY:
+           switchClass(cl, el)
+            = Removes the given class from the element that currently has that class, then adds it to the given element
+            - cl: the class to be switched
+            - el: the new element the given class should be added to
+           openFile(path)
+            = Displays the file at the given path in the editor
+            - path: the path to the file
+           openTab(path)
+            = Displays the file at the given path in the tab bar
+            - path: the path to the file
+           openEditor(path)
+            = Displays the file at the given path's contents in the editor
+            - path: the path to the file
+        
+        */
+        function switchClass(cl, el) {
+          if (document.getElementsByClassName(cl)[0]) {
+            document.getElementsByClassName(cl)[0].classList.remove(cl);
           }
-          document.getElementById(getID(path)).classList.add("sidebar-file-open");
+          el.classList.add(cl);
+        }
+        function openFile(path) {
+          switchClass("sidebar-file-open", document.getElementById(getID(path)));
           openTab(path);
           openEditor(path);
         }
         function openTab(path) {
           var data = getPath(path);
-          tabs.push(path);
-          document.getElementsByClassName("editor-tabs")[0].innerHTML += `
-            <div class="editor-tab">
-              ` + (data.name + "." + data.extension) + `
-            </div>
-          `;
-          // [TODO]: display tab
+          var tabExists = tabs.indexOf(stringifyPath(path));
+          var id = stringifyPath(path);
+          if (tabExists === -1) {
+            tabs.push(id);
+            document.getElementsByClassName("editor-tabs")[0].innerHTML += `
+              <div class="editor-tab editor-tab-open" id="tab_` + id + `">
+                ` + (data.name + "." + data.extension) + `
+              </div>
+            `;
+          } else {
+            switchClass("editor-tab-open", document.getElementById("tab_" + id));
+          }
         }
         function openEditor(path) {
           document.getElementsByClassName("editor-text-container")[0].innerText = getPath(path).contents;
