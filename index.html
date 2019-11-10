@@ -811,12 +811,12 @@
           }
         }
         function tabDragEnd(e) {
-          var tabDragPath = tabs.splice(tabDrag.dragging.i, 1)[0];
           if (tabDrag.dragging.el.id !== tabDrag.over.el.id) {
+            var tabDragPath = tabs.splice(tabDrag.dragging.i, 1)[0];
             if (e.clientX < tabDrag.over.el.offsetLeft + tabDrag.over.el.offsetWidth / 2) { // Left
-              tabs.splice(tabDrag.over.i, 0, tabDragPath);
+              tabs.splice((tabDrag.dragging.i < tabDrag.over.i) ? (tabDrag.over.i - 1) : tabDrag.over.i, 0, tabDragPath);
             } else { // Right
-              tabs.splice(tabDrag.over.i + 1, 0, tabDragPath);
+              tabs.splice((tabDrag.dragging.i < tabDrag.over.i) ? (tabDrag.over.i) : (tabDrag.over.i + 1), 0, tabDragPath);
             }
             displayAllTabs();
           }
