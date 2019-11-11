@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- https://css-tricks.com/using-css-transitions-auto-dimensions/ -->
 <html>
   <head>
     <title>ReEdit</title>
@@ -203,7 +202,7 @@
         cursor: pointer;
         /*box-shadow: 0px 0px 10px rgba(200, 200, 200);*/
       }
-      .sidebar-file-open {
+      .sidebar-open {
         background-color: rgb(240, 240, 240);
       }
       .sidebar-linked {
@@ -264,6 +263,9 @@
       }
       .editor-tab-open {
         background-color: rgb(255, 255, 255);
+      }
+      .editor-tab-linked {
+        background-color: rgb(225, 225, 225);
       }
       .editor-tab-over-left {
         border-left: 5px solid rgb(0, 0, 0);
@@ -623,6 +625,10 @@
             - path: the path to the file
 
         */
+        function toggleFolder(path) {
+          getPath(path).open = !getPath(path).open;
+          toggle("folder_" + stringifyPath(path) + "_contents", "sidebar-folder-contents");
+        }
         function displayFile(path) {
           var data = getPath(path);
 
@@ -640,7 +646,7 @@
           if (data.type === "folder") {
             parent.innerHTML += `
               <div class="sidebar-folder-container" id="` + (id + "_container") + `">
-                <div class="sidebar-folder" id="` + id + `" onclick="toggle('` + id + `_contents', 'sidebar-folder-contents')">
+                <div class="sidebar-folder" id="` + id + `" onclick="toggleFolder([` + objectifyPath(id.split("_")[1]) + `])">
                   ` + data.name + `
                 </div>
                 <div class="t0-5 sidebar-folder-contents" id="` + (id + "_contents") + `">
@@ -650,7 +656,7 @@
             `;
           } else {
             parent.innerHTML += `
-              <div class="sidebar-file" id="` + id + `" onclick="openFile([` + path  + `])">
+              <div class="sidebar-file" id="` + id + `" onclick="openFile([` + path  + `])" onmouseover="addClass('editor-tab-linked', document.getElementById('tab_` + stringifyPath(path) + `') ? document.getElementById('tab_` + stringifyPath(path) + `') : false)" onmouseout="removeClass('editor-tab-linked')">
                 ` + (data.name + "." + data.extension) + `
               </div>
             `;
@@ -703,32 +709,36 @@
         function removeClass(cl) {
           for (var i = 0; i < document.getElementsByClassName(cl).length; i++) {
             document.getElementsByClassName(cl)[i].classList.remove(cl);
+            i--;
           }
         }
         function addClass(cl, el) {
-          el.classList.add(cl);
+          if (el) {
+            el.classList.add(cl);
+          }
         }
         function switchClass(cl, el) {
           removeClass(cl);
           addClass(cl, el);
         }
         function openFile(path) {
-          switchClass("sidebar-file-open", document.getElementById(getID(path)));
+          switchClass("sidebar-open", document.getElementById(getID(path)));
+          var curPath = [];
+          for (var i = 0; i < path.length - 1; i++) {
+            curPath.push(path[i]);
+            if (!getPath(curPath).open) {
+              addClass("sidebar-open", document.getElementById("folder_" + stringifyPath(curPath)));
+            }
+          }
           openTab(path);
           openEditor(path);
         }
         function openTab(path) {
-          // var data = getPath(path);
           var tabExists = tabs.indexOf(stringifyPath(path));
           var id = stringifyPath(path);
           if (tabExists === -1) {
             tabs.push(id);
             displayAllTabs();
-            // document.getElementsByClassName("editor-tabs")[0].innerHTML += `
-            //   <div class="editor-tab" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)">
-            //     ` + (data.name + "." + data.extension) + `
-            //   </div>
-            // `;
           }
           switchClass("editor-tab-open", document.getElementById("tab_" + id));
         }
@@ -738,11 +748,20 @@
           // [TODO]: after tabs are dragged, the currently selected one loses it class (this needs to be fixed!)
           for (var i = 0; i < tabs.length; i++) {
             id = tabs[i], path = objectifyPath(id), data = getPath(path);
+            // [TODO]: when a tab is hovered over, highlight all the parent folders of the file (maybe in a lighter color, maybe not?)
             document.getElementsByClassName("editor-tabs")[0].innerHTML += `
-              <div class="editor-tab" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)" onmouseover="addClass('sidebar-linked', document.getElementById('file_` + id + `'))" onmouseout="removeClass('sidebar-linked')">
+              <div class="editor-tab" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)" onmouseover="hoverTabLinked([` + objectifyPath(id) + `])" onmouseout="removeClass('sidebar-linked')">
                 ` + (data.name + "." + data.extension) + `
               </div>
             `;
+          }
+        }
+        function hoverTabLinked(path) {
+          addClass('sidebar-linked', document.getElementById("file_" + stringifyPath(path)));
+          var curPath = [];
+          for (var i = 0; i < path.length; i++) {
+            curPath.push(path[i]);
+            addClass('sidebar-linked', document.getElementById("folder_" + stringifyPath(curPath)));
           }
         }
         function openEditor(path) {
@@ -786,20 +805,21 @@
 
         */
         function tabDragStart(id) {
-          removeClass('sidebar-linked'); // this is an edge case; onmouseout is not called when an element is dragged
+          removeClass('sidebar-linked'); // Don't highlight the linked file while dragging
           tabDrag.dragging = {
             el: document.getElementById("tab_" + id),
             i: tabs.indexOf(id)
           };
         }
         function tabDragOver(e) {
+          removeClass('sidebar-linked'); // Don't highlight the linked file while dragging
           e.preventDefault();
           tabDrag.over = {
             el: e.target,
             i: tabs.indexOf(e.target.id.split("_")[1])
           };
           if (tabDrag.dragging.el.id !== tabDrag.over.el.id) {
-            if (e.clientX < tabDrag.over.el.offsetLeft + tabDrag.over.el.offsetWidth / 2) { // Left
+            if (mousePos(e).x < tabDrag.over.el.offsetLeft + tabDrag.over.el.offsetWidth / 2) { // Left
               if (!document.getElementsByClassName("editor-tab-over-left")[0] || tabDrag.over.el.id !== document.getElementsByClassName("editor-tab-over-left")[0].id) {
                 removeClass("editor-tab-over-right");
                 removeClass("editor-tab-over-left");
@@ -815,9 +835,10 @@
           }
         }
         function tabDragEnd(e) {
+          removeClass('sidebar-linked'); // Don't highlight the linked file while dragging
           if (tabDrag.dragging.el.id !== tabDrag.over.el.id) {
             var tabDragPath = tabs.splice(tabDrag.dragging.i, 1)[0];
-            if (e.clientX < tabDrag.over.el.offsetLeft + tabDrag.over.el.offsetWidth / 2) { // Left
+            if (mousePos(e).x < tabDrag.over.el.offsetLeft + tabDrag.over.el.offsetWidth / 2) { // Left
               tabs.splice((tabDrag.dragging.i < tabDrag.over.i) ? (tabDrag.over.i - 1) : tabDrag.over.i, 0, tabDragPath);
             } else { // Right
               tabs.splice((tabDrag.dragging.i < tabDrag.over.i) ? (tabDrag.over.i) : (tabDrag.over.i + 1), 0, tabDragPath);
@@ -875,6 +896,13 @@
           } else if (e.clientX || e.clientY) {
             mouseX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
             mouseY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+          }
+          // Add the scroll of the parent elements (excluding the element itself (not needed) plus body, html, document and window scolls, as those are already taken into consideration)
+          if (e.path) {
+            for (var i = 1; i < e.path.length - 4; i++) {
+              mouseX += e.path[i].scrollLeft;
+              mouseY += e.path[i].scrollTop;
+            }
           }
           return {
             x: mouseX,
