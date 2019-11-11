@@ -467,7 +467,7 @@
                   name: "resources",
                   created: new Date().getTime(),
                   saved: new Date().getTime(),
-                  open: true,
+                  open: false,
                   contents: [
                     {
                       type: "file",
@@ -649,7 +649,7 @@
                 <div class="sidebar-folder" id="` + id + `" onclick="toggleFolder([` + objectifyPath(id.split("_")[1]) + `])">
                   ` + data.name + `
                 </div>
-                <div class="t0-5 sidebar-folder-contents" id="` + (id + "_contents") + `">
+                <div class="t0-5 sidebar-folder-contents` + (data.open ? "" : " sidebar-folder-contents-active") + `" id="` + (id + "_contents") + `">
 
                 </div>
               </div>
