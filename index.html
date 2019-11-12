@@ -387,7 +387,7 @@
         /*
 
          VARIABLE SETUP:
-          path[]
+          currentPath[]
            = The path to the currently open file
            - contains: numeric indicies
            - example: [0, 1, 4] would lead to files.contents[0].contents[1].contents[4]
@@ -402,7 +402,7 @@
            - label: [TODO]
 
         */
-        var path = [];
+        var currentPath = [];
         var tabs = [];
         var files = {
           type: "folder",
@@ -628,6 +628,8 @@
         function toggleFolder(path) {
           getPath(path).open = !getPath(path).open;
           toggle("folder_" + stringifyPath(path) + "_contents", "sidebar-folder-contents");
+          switchClass("sidebar-open", document.getElementById(getID(currentPath)));
+          classifyParentPath(currentPath, "sidebar-open");
         }
         function displayFile(path) {
           var data = getPath(path);
@@ -721,19 +723,23 @@
           removeClass(cl);
           addClass(cl, el);
         }
-        function openFile(path) {
-          switchClass("sidebar-open", document.getElementById(getID(path)));
+        function classifyParentPath(path, cl) {
           var curPath = [];
           for (var i = 0; i < path.length - 1; i++) {
             curPath.push(path[i]);
             if (!getPath(curPath).open) {
-              addClass("sidebar-open", document.getElementById("folder_" + stringifyPath(curPath)));
+              addClass(cl, document.getElementById("folder_" + stringifyPath(curPath)));
             }
           }
+        }
+        function openFile(path) {
+          switchClass("sidebar-open", document.getElementById(getID(path)));
+          classifyParentPath(path, "sidebar-open");
           openTab(path);
           openEditor(path);
         }
         function openTab(path) {
+          currentPath = path;
           var tabExists = tabs.indexOf(stringifyPath(path));
           var id = stringifyPath(path);
           if (tabExists === -1) {
@@ -745,12 +751,10 @@
         function displayAllTabs() {
           document.getElementsByClassName("editor-tabs")[0].innerHTML = "";
           var id, path, data;
-          // [TODO]: after tabs are dragged, the currently selected one loses it class (this needs to be fixed!)
           for (var i = 0; i < tabs.length; i++) {
             id = tabs[i], path = objectifyPath(id), data = getPath(path);
-            // [TODO]: when a tab is hovered over, highlight all the parent folders of the file (maybe in a lighter color, maybe not?)
             document.getElementsByClassName("editor-tabs")[0].innerHTML += `
-              <div class="editor-tab" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)" onmouseover="hoverTabLinked([` + objectifyPath(id) + `])" onmouseout="removeClass('sidebar-linked')">
+              <div class="editor-tab` + (id === stringifyPath(currentPath) ? " editor-tab-open" : "") + `" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)" onmouseover="hoverTabLinked([` + objectifyPath(id) + `])" onmouseout="removeClass('sidebar-linked')">
                 ` + (data.name + "." + data.extension) + `
               </div>
             `;
@@ -758,11 +762,7 @@
         }
         function hoverTabLinked(path) {
           addClass('sidebar-linked', document.getElementById("file_" + stringifyPath(path)));
-          var curPath = [];
-          for (var i = 0; i < path.length; i++) {
-            curPath.push(path[i]);
-            addClass('sidebar-linked', document.getElementById("folder_" + stringifyPath(curPath)));
-          }
+          classifyParentPath(path, "sidebar-linked");
         }
         function openEditor(path) {
           document.getElementsByClassName("editor-text-container")[0].innerText = getPath(path).contents;
