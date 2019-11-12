@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!--
+
+  KNOWN BUGS:
+   none! :D
+
+-->
 <html>
   <head>
     <title>ReEdit</title>
@@ -144,7 +150,7 @@
       .header {
         position: relative;
         background-color: rgb(250, 250, 250);
-        width: calc(100% - 100px);
+        width: calc(100vw - 100px);
         height: 50px;
         line-height: 50px;
         margin: 0px;
@@ -174,13 +180,52 @@
 
       /* Sidebar: */
       .sidebar {
+        display: flex;
         position: relative;
         background-color: rgb(250, 250, 250);
-        width: 20%;
+        width: 20vw;
         margin: 0px;
         padding: 25px;
         animation: slide-left 2s forwards, 2s shadow-in 2s forwards;
         z-index: 1;
+        overflow: hidden;
+        flex-direction: column;
+      }
+      .sidebar-tools-container {
+        display: flex;
+        width: calc(100% - 20px);
+        margin: 0px 0px 15px 0px;
+        padding: 10px;
+        flex-direction: column;
+      }
+      .sidebar-search-container {
+        background-color: rgb(255, 255, 255);
+        width: calc(100% - 20px);
+        margin: 0px;
+        padding: 9px;
+        border: 1px solid rgba(0, 0, 0, 0);
+        border-radius: 10px;
+        transition: all 0.5s;
+      }
+      .sidebar-search-container:focus {
+        outline: none;
+        border: 1px solid rgba(200, 200, 200, 0.5);
+      }
+      .sidebar-options-container {
+        display: flex;
+        width: 100%;
+        margin: 0px;
+        padding: 0px;
+      }
+      .sidebar-option-TEMPORARY {
+        flex-grow: 1;
+        text-align: center;
+        border: 1px solid black;
+      }
+      .sidebar-files {
+        width: 100%;
+        margin: 0px;
+        padding: 0px;
         overflow: scroll;
       }
       .sidebar-folder-container {
@@ -189,7 +234,7 @@
       }
       .sidebar-folder, .sidebar-file {
         background-color: rgb(250, 250, 250);
-        padding: 10px 10px 10px 10px;
+        padding: 10px;
         border-radius: 10px;
         transition: all 0.5s;
       }
@@ -313,45 +358,82 @@
     </style>
   </head>
   <body>
+    <!-- Header -->
     <div class="header">
+      <!-- ReEdit Icon -->
       <img class="main-icon" src="resources/pencil.png">
+      <!-- ReEdit Text -->
       <div class="header-text">
         <h1>ReEdit</h1>
       </div>
+      <!-- Options Container -->
       <div class="options-container">
+        <!-- Run Icon -->
         <div class="icon-container run-icon-container">
           <img class="icon run-icon" src="resources/download.png">
         </div>
+        <!-- Download Icon -->
         <div class="icon-container download-icon-container">
           <img class="icon download-icon" src="resources/download.png">
         </div>
+        <!-- Account Icon -->
         <div class="icon-container account-icon-container">
           <img class="icon account-icon" src="resources/person.png">
         </div>
+        <!-- Settings Icon -->
         <div class="icon-container settings-icon-container">
           <img class="icon settings-icon" src="resources/gear.png">
         </div>
       </div>
     </div>
+    <!-- Content -->
     <div class="content">
+      <!-- Sidebar -->
       <div class="sidebar">
+        <div class="sidebar-tools-container">
+          <div class="sidebar-search-container" contenteditable="true">Search</div>
+          <!--<div class="sidebar-options-container">
+            <div class="sidebar-option-TEMPORARY">
+              1
+            </div>
+            <div class="sidebar-option-TEMPORARY">
+              2
+            </div>
+            <div class="sidebar-option-TEMPORARY">
+              3
+            </div>
+            <div class="sidebar-option-TEMPORARY">
+              4
+            </div>
+          </div>-->
+        </div>
+        <div class="sidebar-files">
+
+        </div>
       </div>
+      <!-- Editor -->
       <div class="editor-container">
+        <!-- Tab Display -->
         <div class="editor-tabs">
         </div>
+        <!-- Text Editor Display -->
         <div class="editor-text-container">
 
         </div>
+        <!-- Info Display -->
         <div class="editor-info">
         </div>
       </div>
     </div>
+    <!-- Context Menu -->
     <div class="context">
       <div class="context-item">
         context!
       </div>
     </div>
+    <!-- Page Cover -->
     <div class="t0-5 cover">
+      <!-- Settings Cover -->
       <div class="t0-5 settings">
         <div class="icon-container-close settings-icon-container-close">
           <img class="icon settings-icon" src="resources/gear.png">
@@ -360,6 +442,7 @@
         Welcome to settings!<br>
         There are currently no settings.
       </div>
+      <!-- Account Cover -->
       <div class="t0-5 account">
         <div class="icon-container-close account-icon-container-close">
           <img class="icon account-icon" src="resources/person.png">
@@ -373,6 +456,7 @@
         <button onclick="login()" id="login">Login</button><br>
         <button onclick="createAccount()" id="createAccount">or Create an Account</button>
       </div>
+      <!-- Download Cover -->
       <div class="t0-5 download">
         <div class="icon-container-close download-icon-container-close">
           <img class="icon download-icon" src="resources/download.png">
@@ -641,7 +725,7 @@
           }
 
           // Get the parent element and the ID for the new element:
-          var parent = document.getElementById("folder_" + stringifyPath(parentPath) + "_contents") || document.getElementsByClassName("sidebar")[0];
+          var parent = document.getElementById("folder_" + stringifyPath(parentPath) + "_contents") || document.getElementsByClassName("sidebar-files")[0];
           var id = getID(path);
 
           // Create the new element:
