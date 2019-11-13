@@ -2,7 +2,10 @@
 <!--
 
   KNOWN BUGS:
-   none! :D
+   tab squishing <•>
+    = tabs with a name that doens't fit into the min-width will be squished as soon as there is no room left in the tabs container
+    - type: display (or logic)
+    - level: minor (or major)
 
 -->
 <html>
@@ -701,6 +704,9 @@
         /*
 
           SIDEBAR DISPLAY:
+           toggleFolder(path)
+            = Opens/closes the folder at the given path in the sidebar
+            - path: the path to the folder
            displayFile(path)
             = Displays the file/folder at the given path in the sidebar
             - path: the path to the file
@@ -779,6 +785,10 @@
             = Removes the given class from the element that currently has that class, then adds it to the given element
             - cl: the class to be switched
             - el: the new element the given class should be added to
+           classifyParentPath(path, cl)
+            = Adds the given class to the parent folder(s) if the parent folder(s) are closed
+            - path: the path to the file
+            - cl: the class to be added
            openFile(path)
             = Displays the file at the given path in the editor
             - path: the path to the file
@@ -787,6 +797,9 @@
             - path: the path to the file
            displayAllTabs()
             = Displays all the open tabs in the tab bar
+           hoverTabLinked(path)
+            = The file at the given path will light up when the tab with that same given path is hovered over
+            - path: the path to the file
            openEditor(path)
             = Displays the file at the given path's contents in the editor
             - path: the path to the file
@@ -942,6 +955,9 @@
             }
           };
         }
+
+      //
+
 
       // Event Handling:
         /*
