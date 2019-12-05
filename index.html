@@ -394,7 +394,7 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-tools-container">
-          <div class="sidebar-search-container" contenteditable="true">Search</div>
+          <div class="sidebar-search-container" contenteditable="true" onkeyup="updateSearch()">Search</div>
           <!--<div class="sidebar-options-container">
             <div class="sidebar-option-TEMPORARY">
               1
@@ -1034,6 +1034,10 @@
           }
           quicksort(filteredResults, 0, filteredResults.length - 1, "score");
           return filteredResults;
+        }
+        function updateSearch() {
+//           document.getElementById(
+          console.log("keyup!");
         }
 
         /*
