@@ -956,6 +956,129 @@
           };
         }
 
+        /*
+
+          SEARCH FUNCTIONS:
+           occurences(term, str)
+            = Lists the number of times the given term occurs in the given string
+            - term: the term being searched for in the string
+            - str: the string to be searched in
+           searchCheck(term, path)
+            = Calculates a search score by searching through the file at the given path using the given term
+            - term: the term to be searched for in the file at the given path's data
+            - path: the path to the file/folder being searched
+           search(term, path)
+            = Calculates a search score for all the files/folders found in the given path using the given term
+            - term: the term to be searched for
+            - path: the path to the folder being searched
+
+        */
+        function occurences(term, str) {
+          var occ = 0;
+          for (var i = 0; i < str.length - (term.length - 1); i++) {
+            if (str.substring(i, i + term.length) === term) {
+              occ++;
+            }
+          }
+          return occ;
+        }
+        function searchCheck(term, path) {
+          var cur = getPath(path);
+          var score = 0;
+          if (cur.type === "folder") {
+            score += occurences(term, cur.type.toLowerCase()); // Type
+            score += occurences(term, cur.name.toLowerCase()); // Name
+            score *= 5; // Folder Multiplier
+          } else {
+            score += occurences(term, cur.type.toLowerCase()); // Type
+            score += occurences(term, cur.name.toLowerCase() + "." + cur.extension.toLowerCase()); // Name + Extension
+            score += occurences(term, cur.contents.toLowerCase()); // Contents
+          }
+          return {
+            path: path,
+            score: score
+          };
+        }
+        function search(term, path) {
+          if (!term) {
+            term = "";
+          }
+          term = term.toLowerCase();
+          var results = [];
+          var p = getPath(path).contents;
+          // Get the results:
+          for (var i = 0; i < p.length; i++) {
+            // newPath = the current path + the current index (basically [path, i])
+            var newPath = [];
+            for (var j = 0; j < (path ? path.length : 0); j++) {
+              newPath.push(path[j]);
+            }
+            newPath.push(i);
+            results.push(searchCheck(term, newPath));
+            if (p[i].type === "folder") {
+              var tempResults = search(term, newPath);
+              for (var j = 0; j < tempResults.length; j++) {
+                results.push(tempResults[j]);
+              }
+            }
+          }
+          // Filter and sort results:
+          var filteredResults = [];
+          for (var i = 0; i < results.length; i++) {
+            if (results[i].score === 0) {
+              results.splice(i, 1);
+              i--;
+              continue;
+            }
+            filteredResults.push(results[i]);
+          }
+          quicksort(filteredResults, 0, filteredResults.length - 1, "score");
+          return filteredResults;
+        }
+
+        /*
+
+          QUICKSORT FUNCTIONS:
+           partition(arr, lo, hi, by)
+            = The quicksort partition function; sorts the current partition based on the given "by" value
+            - arr: the whole array
+            - lo: the low end of the array to be partitioned / sorted
+            - hi: the high end of the array to be partitioned / sorted
+            - by (optional): what the object should be sorted by; leave blank when sorting arrays
+           quicksort(arr, lo, hi, by)
+            = The quicksort function; sorts an array based on the given "by" value
+            - arr: the whole array
+            - lo: the low end of the array to be partitioned
+            - hi: the high end of the array to be partitioned
+            - by (optional): what the object should be sorted by; leave blank when sorting arrays
+
+        */
+        function partition(arr, lo, hi, by) {
+          var pivot = (by ? arr[hi][by] : arr[hi]);
+          var i = lo;
+          for (var j = lo; j < hi; j++) {
+            if ((by ? arr[j][by] : arr[j]) > pivot) {
+              if (i !== j) {
+                var t = arr[j];
+                arr[j] = arr[i];
+                arr[i] = t;
+              }
+              i++;
+            }
+          }
+          var t = arr[hi];
+          arr[hi] = arr[i];
+          arr[i] = t;
+          return i;
+        }
+        function quicksort(arr, lo, hi, by) {
+          if (lo < hi) {
+            var p = partition(arr, lo, hi, by);
+            quicksort(arr, lo, p - 1, by);
+            quicksort(arr, p + 1, hi, by);
+          }
+        }
+
       //
 
 
