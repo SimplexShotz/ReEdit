@@ -1036,7 +1036,7 @@
           return filteredResults;
         }
         function updateSearch() {
-          var s = document.getElementById("sidebar-search");
+          var s = document.getElementsByClassName("sidebar-search")[0];
           s.innerHTML = s.innerText;
           console.log("keyup!");
         }
