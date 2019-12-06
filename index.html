@@ -394,7 +394,7 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-tools-container">
-          <div class="sidebar-search" contenteditable="true" onkeyup="updateSearch()">Search</div>
+          <input class="sidebar-search" onkeyup="updateSearch()" placeholder="Search">
           <!--<div class="sidebar-options-container">
             <div class="sidebar-option-TEMPORARY">
               1
@@ -1037,8 +1037,7 @@
         }
         function updateSearch() {
           var s = document.getElementsByClassName("sidebar-search")[0];
-          s.innerHTML = s.innerText;
-          console.log("keyup!");
+          console.log(search(s.innerText));
         }
 
         /*
