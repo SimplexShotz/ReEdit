@@ -201,7 +201,7 @@
         padding: 10px;
         flex-direction: column;
       }
-      .sidebar-search-container {
+      .sidebar-search {
         background-color: rgb(255, 255, 255);
         width: calc(100% - 20px);
         margin: 0px;
@@ -210,7 +210,7 @@
         border-radius: 10px;
         transition: all 0.5s;
       }
-      .sidebar-search-container:focus {
+      .sidebar-search:focus {
         outline: none;
         border: 1px solid rgba(200, 200, 200, 0.5);
       }
@@ -394,7 +394,7 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-tools-container">
-          <div class="sidebar-search-container" contenteditable="true" onkeyup="updateSearch()">Search</div>
+          <div class="sidebar-search" contenteditable="true" onkeyup="updateSearch()">Search</div>
           <!--<div class="sidebar-options-container">
             <div class="sidebar-option-TEMPORARY">
               1
@@ -1036,7 +1036,8 @@
           return filteredResults;
         }
         function updateSearch() {
-//           document.getElementById(
+          var s = document.getElementById("sidebar-search");
+          s.innerHTML = s.innerText;
           console.log("keyup!");
         }
 
