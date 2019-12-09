@@ -215,13 +215,17 @@
         outline: none;
         border: 1px solid rgba(200, 200, 200, 0.5);
       }
+      .sidebar-search-results {
+        display: absolute;
+        z-index: 1;
+      }
       .sidebar-options-container {
         display: flex;
         width: 100%;
         margin: 0px;
         padding: 0px;
       }
-      .sidebar-option-TEMPORARY {
+      .sidebar-option-TEMPORARY { /* change/remove these styles later */
         flex-grow: 1;
         text-align: center;
         border: 1px solid black;
@@ -396,6 +400,7 @@
       <div class="sidebar">
         <div class="sidebar-tools-container">
           <input class="sidebar-search" onkeyup="updateSearch()" placeholder="Search">
+          <div class="sidebar-search-results">Results</div>
           <!--<div class="sidebar-options-container">
             <div class="sidebar-option-TEMPORARY">
               1
