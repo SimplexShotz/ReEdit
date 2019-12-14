@@ -215,9 +215,54 @@
         outline: none;
         border: 1px solid rgba(200, 200, 200, 0.5);
       }
+      .sidebar-search-active {
+        border-radius: 10px 10px 0px 0px;
+      }
       .sidebar-search-results {
-        display: absolute;
+        position: absolute;
+        background-color: rgb(255, 255, 255);
+        border: 1px solid rgba(200, 200, 200, 0.5);
+        border-radius: 0px 0px 10px 10px;
+        top: calc(57px + 12pt);
+        width: calc(100% - 92px);
+        padding: 10px;
+        left: 35px;
         z-index: 1;
+        opacity: 0;
+      }
+      .sidebar-search-results-active {
+        opacity: 1;
+      }
+      .sidebar-search-results-dim {
+        background-color: rgba(255, 255, 255, 0.3);
+      }
+      .sidebar-search-results-dim .sidebar-search-result, .sidebar-search-results-dim .sidebar-search-result-header {
+        color: rgba(0, 0, 0, 0);
+      }
+      .sidebar-search-results-dim .sidebar-search-result {
+        border-top: 1px solid rgba(0, 0, 0, 0);
+      }
+      .sidebar-search-result-header {
+        width: calc(100% - 10px);
+        padding: 5px;
+        font-weight: 500;
+        transition: all 0.5s;
+      }
+      .sidebar-search-result {
+        border-top: 1px solid rgba(200, 200, 200, 0.5);
+        width: calc(100% - 10px);
+        padding: 5px;
+        overflow-x: auto;
+        transition: all 0.5s;
+      }
+      .sidebar-search-result:hover {
+        background-color: rgb(225, 225, 225);
+        border-radius: 10px;
+        box-shadow: 0px 0px 10px rgba(200, 200, 200, 0.5);
+        padding: 5px 5px 5px 10px;
+        width: calc(100% - 15px);
+        color: rgb(0, 0, 0);
+        cursor: pointer;
       }
       .sidebar-options-container {
         display: flex;
@@ -399,8 +444,7 @@
       <!-- Sidebar -->
       <div class="sidebar">
         <div class="sidebar-tools-container">
-          <input class="sidebar-search" onkeyup="updateSearch()" placeholder="Search">
-          <div class="sidebar-search-results">Results</div>
+          <input class="sidebar-search" onfocus="updateSearch()" onblur="showResults(false)" onkeyup="updateSearch()" placeholder="Search">
           <!--<div class="sidebar-options-container">
             <div class="sidebar-option-TEMPORARY">
               1
@@ -416,9 +460,10 @@
             </div>
           </div>-->
         </div>
-        <div class="sidebar-files">
-
+        <div class="t0-5 sidebar-search-results">
+          <div class="sidebar-search-result-header">Results:</div>
         </div>
+        <div class="sidebar-files"></div>
       </div>
       <!-- Editor -->
       <div class="editor-container">
@@ -864,7 +909,8 @@
           }
         }
         function hoverTabLinked(path) {
-          addClass('sidebar-linked', document.getElementById("file_" + stringifyPath(path)));
+          var cur = getPath(path);
+          addClass('sidebar-linked', document.getElementById(getID(path)));
           classifyParentPath(path, "sidebar-linked");
         }
         function openEditor(path) {
@@ -967,23 +1013,28 @@
           SEARCH FUNCTIONS:
            occurences(term, str)
             = Lists the number of times the given term occurs in the given string
-            - term: the term being searched for in the string
+            - term: the term(s) being searched for in the string; terms are seperated by a space
             - str: the string to be searched in
            searchCheck(term, path)
             = Calculates a search score by searching through the file at the given path using the given term
-            - term: the term to be searched for in the file at the given path's data
+            - term: the term(s) to be searched for in the file at the given path's data; terms are seperated by a space
             - path: the path to the file/folder being searched
            search(term, path)
             = Calculates a search score for all the files/folders found in the given path using the given term
-            - term: the term to be searched for
+            - term: the term(s) to be searched for; terms are seperated by a space
             - path: the path to the folder being searched
 
         */
         function occurences(term, str) {
+          var terms = term.split(" ");
           var occ = 0;
-          for (var i = 0; i < str.length - (term.length - 1); i++) {
-            if (str.substring(i, i + term.length) === term) {
-              occ++;
+          for (var curTerm = 0; curTerm < terms.length; curTerm++) {
+            if (terms[curTerm] !== "") {
+              for (var i = 0; i < str.length - (terms[curTerm].length - 1); i++) {
+                if (str.substring(i, i + terms[curTerm].length) === terms[curTerm]) {
+                  occ++;
+                }
+              }
             }
           }
           return occ;
@@ -992,12 +1043,12 @@
           var cur = getPath(path);
           var score = 0;
           if (cur.type === "folder") {
-            score += occurences(term, cur.type.toLowerCase()); // Type
-            score += occurences(term, cur.name.toLowerCase()); // Name
-            score *= 5; // Folder Multiplier
+            score += occurences(term, cur.type.toLowerCase()) * 2; // Type
+            score += occurences(term, cur.name.toLowerCase()) * 4; // Name
+            score *= 2; // Folder Multiplier
           } else {
-            score += occurences(term, cur.type.toLowerCase()); // Type
-            score += occurences(term, cur.name.toLowerCase() + "." + cur.extension.toLowerCase()); // Name + Extension
+            score += occurences(term, cur.type.toLowerCase()) * 2; // Type
+            score += occurences(term, cur.name.toLowerCase() + "." + cur.extension.toLowerCase()) * 4; // Name + Extension
             score += occurences(term, cur.contents.toLowerCase()); // Contents
           }
           return {
@@ -1041,9 +1092,39 @@
           quicksort(filteredResults, 0, filteredResults.length - 1, "score");
           return filteredResults;
         }
+        function showResults(show) {
+          if (show) {
+            addClass("sidebar-search-results-active", document.getElementsByClassName("sidebar-search-results")[0]);
+            addClass("sidebar-search-active", document.getElementsByClassName("sidebar-search")[0]);
+            document.getElementsByClassName("sidebar-search-results")[0].style.pointerEvents = "auto";
+          } else {
+            removeClass("sidebar-search-results-active");
+            removeClass("sidebar-search-active");
+            // Delay this by 1 frame so that files will still open when clicked on:
+            setTimeout(function() {
+              document.getElementsByClassName("sidebar-search-results")[0].style.pointerEvents = "none";
+            }, 500);
+          }
+        }
         function updateSearch() {
           var s = document.getElementsByClassName("sidebar-search")[0];
-          console.log(search(s.value));
+          showResults(s.value !== "");
+          if (s.value !== "") {
+            document.getElementsByClassName("sidebar-search-results")[0].innerHTML = "<div class='sidebar-search-result-header'>Results:</div>";
+            var searchResults = search(s.value), cur;
+            if (searchResults.length === 0) {
+              document.getElementsByClassName("sidebar-search-results")[0].innerHTML = "No Results.";
+            }
+            for (var i = 0; i < searchResults.length; i++) {
+              cur = getPath(searchResults[i].path);
+              document.getElementsByClassName("sidebar-search-results")[0].innerHTML += `
+                <div class="sidebar-search-result" onclick="if ('` + cur.type + `' !== 'folder') { openFile([` + searchResults[i].path  + `]) }" onmouseover="addClass('sidebar-search-results-dim', document.getElementsByClassName('sidebar-search-results')[0]); addClass('editor-tab-linked', document.getElementById('tab_` + stringifyPath(searchResults[i].path) + `') ? document.getElementById('tab_` + stringifyPath(searchResults[i].path) + `') : false); hoverTabLinked([` + searchResults[i].path + `]);" onmouseout="removeClass('sidebar-search-results-dim'); removeClass('editor-tab-linked'); removeClass('sidebar-linked');">
+                  ` + (cur.name + (cur.extension ? "." + cur.extension : "")) + `
+                </div>
+              `;
+            }
+            // console.log(search(s.value));
+          }
         }
 
         /*
@@ -1214,8 +1295,6 @@
             context.style.display = "block";
             context.style.left = mouseX + "px";
             context.style.top = mouseY + "px";
-
-            console.log(mouseX + " " + mouseY);
           };
           // .close
           document.onclick = function(e) {
