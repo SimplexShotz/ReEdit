@@ -744,8 +744,7 @@
           for (var i = 0; i < path.length; i++) {
             if (current.contents && current.type === "folder") {
               current = current.contents;
-            }
-            if (current[path[i]]) {
+            } else if (current[path[i]]) {
               current = current[path[i]];
             }
           }
@@ -756,19 +755,18 @@
           return data.type + "_" + stringifyPath(path);
         }
         function getNavPath(path) {
-          var p = [];
+          var current = files;
+          var p = [current.name];
           if (path === undefined) {
             return p;
           }
-          var current = files;
           for (var i = 0; i < path.length; i++) {
             if (current.contents && current.type === "folder") {
-              p.push(current.name);
               current = current.contents;
-            }
-            if (current[path[i]]) {
-              p.push(current.name + "." + current.extension);
+              p.push(current.name);
+            } else if (current[path[i]]) {
               current = current[path[i]];
+              p.push(current.name + "." + current.extension);
             }
           }
           return p;
