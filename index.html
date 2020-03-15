@@ -1110,8 +1110,8 @@
           var s = document.getElementsByClassName("sidebar-search")[0];
           showResults(s.value !== "");
           if (s.value !== "") {
-            document.getElementsByClassName("sidebar-search-results")[0].innerHTML = "<div class='sidebar-search-result-header'>Results:</div>";
             var searchResults = search(s.value), cur;
+            document.getElementsByClassName("sidebar-search-results")[0].innerHTML = "<div class='sidebar-search-result-header'>Results (" + searchResults.length + "):</div>";
             if (searchResults.length === 0) {
               document.getElementsByClassName("sidebar-search-results")[0].innerHTML = "No Results.";
             }
