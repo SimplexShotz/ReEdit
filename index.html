@@ -744,7 +744,8 @@
           for (var i = 0; i < path.length; i++) {
             if (current.contents && current.type === "folder") {
               current = current.contents;
-            } else if (current[path[i]]) {
+            }
+            if (current[path[i]]) {
               current = current[path[i]];
             }
           }
@@ -763,10 +764,10 @@
           for (var i = 0; i < path.length; i++) {
             if (current.contents && current.type === "folder") {
               current = current.contents;
-              p.push(current.name);
-            } else if (current[path[i]]) {
+            }
+            if (current[path[i]]) {
               current = current[path[i]];
-              p.push(current.name + "." + current.extension);
+              p.push(current.name + (current.type === "file" ? ("." + current.extension) : ""));
             }
           }
           return p;
