@@ -1095,9 +1095,11 @@
 
             displayAllFiles();
             displayAllTabs();
-
-            currentPath = getPath(currentPath, newLocations).path; // Update the current location
-            openFile(currentPath);
+          
+            if (currentPath.length !== 0) {
+              currentPath = getPath(currentPath, newLocations).path; // Update the current location
+              openFile(currentPath);
+            }
           }
           removeClass("sidebar-over-top");
           removeClass("sidebar-over-bottom");
