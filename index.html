@@ -2,14 +2,21 @@
 <!--
 
   KNOWN BUGS:
-   tab squishing <•>
-    = tabs with a name that doens't fit into the min-width will be squished as soon as there is no room left in the tabs container
-    - type: display (or logic)
-    - level: minor (or major)
    tabs not updating after moving files <•>
     = tabs need to have their pathing updated after files are moved; see todo in code
     - type: logic
     - level: major
+   unclickable first file <•>
+    = top half of the first file is unclickable on load; this is resolved by clicking within the search field
+    - type: display
+    - level: minor
+
+  SOLVED:
+   tab squishing <•>
+    = tabs with a name that doens't fit into the min-width will be squished as soon as there is no room left in the tabs container
+    - fix: hovering over files will show their full name
+    - type: display (or logic)
+    - level: minor (or major)
 
 -->
 <html>
@@ -1057,12 +1064,14 @@
             var originalMap = createFileMap(files, []);
             var fileMap = createFileMap(files, []);
 
-            var fileDragData = getPath(fileDrag.dragging.path, fileMap);
+            var fileMapDragData = getPath(fileDrag.dragging.path, fileMap);
+            var fileDragData = getPath(fileDrag.dragging.path);
 
             if (mousePos(e).y >= fileDrag.over.el.offsetTop + 100 + fileDrag.over.el.offsetHeight / 2) { // Bottom
               fileDrag.over.path[fileDrag.over.path.length - 1]++;
             }
-            getPath(getParentPath(fileDrag.over.path), fileMap).contents.splice(fileDrag.over.path[fileDrag.over.path.length - 1], 0, fileDragData); // Copy it to its new location
+            getPath(getParentPath(fileDrag.over.path), fileMap).contents.splice(fileDrag.over.path[fileDrag.over.path.length - 1], 0, fileMapDragData); // Copy it to its new location
+            getPath(getParentPath(fileDrag.over.path)).contents.splice(fileDrag.over.path[fileDrag.over.path.length - 1], 0, fileDragData); // Copy it to its new location
 
             // Figure out if the file was placed above where it was (it's path value is less than what it was before):
             if (isPathALessThanOrEqualToPathB(fileDrag.over.path, fileDrag.dragging.path)) {
@@ -1070,13 +1079,25 @@
               fileDrag.dragging.path[fileDrag.over.path.length - 1]++;
             }
 
+            // Remove the old location:
             getPath(getParentPath(fileDrag.dragging.path), fileMap).contents.splice(fileDrag.dragging.path[fileDrag.dragging.path.length - 1], 1);
+            getPath(getParentPath(fileDrag.dragging.path)).contents.splice(fileDrag.dragging.path[fileDrag.dragging.path.length - 1], 1);
 
             var newLocations = createFileRemap(originalMap, [], fileMap);
 
-            console.log(newLocations);
+            // console.log(newLocations);
 
-            // displayAllTabs();
+            // Update the tabs:
+            for (var i = 0; i < tabs.length; i++) {
+              var tabPath = objectifyPath(tabs[i]);
+              tabs[i] = stringifyPath(getPath(tabPath, newLocations).path);
+            }
+
+            displayAllFiles();
+            displayAllTabs();
+
+            currentPath = getPath(currentPath, newLocations).path; // Update the current location
+            openFile(currentPath);
           }
           removeClass("sidebar-over-top");
           removeClass("sidebar-over-bottom");
