@@ -1,26 +1,8 @@
 <!DOCTYPE html>
 <!--
 
-  TODO: make it so you can drop files over open folders
-
-  bug:
-"""
-index.html:933 Uncaught TypeError: Cannot read property 'length' of undefined
-  at getParentPath (index.html:933)
-  at fileDragEnd (index.html:1111)
-  at HTMLDivElement.ondragend (index.html:1)
-"""
-  to replicate: drag "Example Project" and then release it
-
   KNOWN BUGS:
-   tabs not updating after moving files <•>
-    = tabs need to have their pathing updated after files are moved; see todo in code
-    - type: logic
-    - level: major
-   unclickable first file <•>
-    = top half of the first file is unclickable on load; this is resolved by clicking within the search field
-    - type: display
-    - level: minor
+    None! Yay!
 
   SOLVED:
    tab squishing <•>
@@ -28,6 +10,16 @@ index.html:933 Uncaught TypeError: Cannot read property 'length' of undefined
     - fix: hovering over files will show their full name
     - type: display (or logic)
     - level: minor (or major)
+   tabs not updating after moving files <•>
+    = tabs need to have their pathing updated after files are moved; see todo in code
+    - fix: added code to update tabs
+    - type: logic
+    - level: major
+   unclickable first file <•>
+    = top half of the first file is unclickable on load; this is resolved by clicking within the search field
+    - fix: added "pointer-events: none;" to "sidebar-search-results"
+    - type: display
+    - level: minor
 
 -->
 <html>
@@ -242,6 +234,7 @@ index.html:933 Uncaught TypeError: Cannot read property 'length' of undefined
       }
       .sidebar-search-results {
         position: absolute;
+        pointer-events: none;
         background-color: rgb(255, 255, 255);
         border: 1px solid rgba(200, 200, 200, 0.5);
         border-radius: 0px 0px 10px 10px;
@@ -988,7 +981,7 @@ index.html:933 Uncaught TypeError: Cannot read property 'length' of undefined
                   ` + data.name + `
                   </span>
                 </div>
-                <div class="t0-5 sidebar-folder-contents` + (data.open ? "" : " sidebar-folder-contents-active") + `" id="` + (id + "_contents") + `">
+                <div class="sidebar-folder-contents` + (data.open ? "" : " sidebar-folder-contents-active") + `" id="` + (id + "_contents") + `">
 
                 </div>
               </div>
@@ -1086,7 +1079,7 @@ index.html:933 Uncaught TypeError: Cannot read property 'length' of undefined
                 path: objectifyPath(e.target.parentNode.id.split("_")[1])
               };
             }
-            if (e.target.id.split("_")[0] === "file" || e.target.id.split("_")[0] === "file-child" || (e.target.id.split("_")[0] === "folder" || e.target.id.split("_")[0] === "folder-child" || e.target.id.split("_")[0] === "folder-arrow") && !getPath(fileDrag.over.path).open) { // Make sure its being dragged over a file/folder or its child; if it's a folder, make sure it's not open
+            if (e.target.id.split("_")[0] === "file" || e.target.id.split("_")[0] === "file-child" || (e.target.id.split("_")[0] === "folder" || e.target.id.split("_")[0] === "folder-child" || e.target.id.split("_")[0] === "folder-arrow") && !getPath(fileDrag.over.path).open) { // Make sure it's being dragged over a file/folder or its child; if it's a folder, make sure it's not open
               if (fileDrag.dragging.el.id !== fileDrag.over.el.id) {
                 if (mousePos(e).y < fileDrag.over.el.offsetTop + 100 + fileDrag.over.el.offsetHeight / 2) { // Top
                   if (!document.getElementsByClassName("sidebar-over-top")[0] || fileDrag.over.el.id !== document.getElementsByClassName("sidebar-over-top")[0].id) {
@@ -1099,6 +1092,23 @@ index.html:933 Uncaught TypeError: Cannot read property 'length' of undefined
                     removeClass("sidebar-over-top");
                     removeClass("sidebar-over-bottom");
                     addClass("sidebar-over-bottom", fileDrag.over.el);
+                  }
+                }
+              }
+            }
+            if ((e.target.id.split("_")[0] === "folder" || e.target.id.split("_")[0] === "folder-child" || e.target.id.split("_")[0] === "folder-arrow") && getPath(fileDrag.over.path).open) { // If dragging over an open folder
+              if (fileDrag.dragging.el.id !== fileDrag.over.el.id) {
+                if (mousePos(e).y < fileDrag.over.el.offsetTop + 100 + fileDrag.over.el.offsetHeight / 2) { // Top
+                  if (!document.getElementsByClassName("sidebar-over-top")[0] || fileDrag.over.el.id !== document.getElementsByClassName("sidebar-over-top")[0].id) {
+                    removeClass("sidebar-over-bottom");
+                    removeClass("sidebar-over-top");
+                    addClass("sidebar-over-top", fileDrag.over.el);
+                  }
+                } else { // Bottom
+                  if (!document.getElementsByClassName("sidebar-over-top")[0] || fileDrag.over.el.parentNode.childNodes[3].id !== document.getElementsByClassName("sidebar-over-top")[0].id) {
+                    removeClass("sidebar-over-top");
+                    removeClass("sidebar-over-bottom");
+                    addClass("sidebar-over-top", document.getElementById(fileDrag.over.el.parentNode.childNodes[3].id));
                   }
                 }
               }
@@ -1117,8 +1127,13 @@ index.html:933 Uncaught TypeError: Cannot read property 'length' of undefined
             var fileDragData = getPath(fileDrag.dragging.path);
 
             if (mousePos(e).y >= fileDrag.over.el.offsetTop + 100 + fileDrag.over.el.offsetHeight / 2) { // Bottom
-              fileDrag.over.path[fileDrag.over.path.length - 1]++;
+              if (getPath(fileDrag.over.path).type === "folder" && getPath(fileDrag.over.path).open) { // If over the bottom of an open folder
+                fileDrag.over.path = [...fileDrag.over.path, 0]; // Put the file in index 0 of the folder
+              } else {
+                fileDrag.over.path[fileDrag.over.path.length - 1]++;
+              }
             }
+
             getPath(getParentPath(fileDrag.over.path), fileMap).contents.splice(fileDrag.over.path[fileDrag.over.path.length - 1], 0, fileMapDragData); // Copy it to its new location
             getPath(getParentPath(fileDrag.over.path)).contents.splice(fileDrag.over.path[fileDrag.over.path.length - 1], 0, fileDragData); // Copy it to its new location
 
@@ -1155,6 +1170,14 @@ index.html:933 Uncaught TypeError: Cannot read property 'length' of undefined
             if (currentPath.length !== 0) {
               currentPath = getPath(currentPath, newLocations).path; // Update the current location
               openFile(currentPath);
+            }
+          } else {
+            var p = fileDrag.dragging.path;
+            // Reopen the folder if it was open before being moved:
+            if (fileDrag.dragging.wasOpen) {
+              setTimeout(function() { // Delay the opening so that the animation plays properly
+                toggleFolder(p);
+              }, 50);
             }
           }
           removeClass("sidebar-over-top");
