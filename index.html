@@ -1,6 +1,17 @@
 <!DOCTYPE html>
 <!--
 
+  TODO: make it so you can drop files over open folders
+
+  bug:
+"""
+index.html:933 Uncaught TypeError: Cannot read property 'length' of undefined
+  at getParentPath (index.html:933)
+  at fileDragEnd (index.html:1111)
+  at HTMLDivElement.ondragend (index.html:1)
+"""
+  to replicate: drag "Example Project" and then release it
+
   KNOWN BUGS:
    tabs not updating after moving files <•>
     = tabs need to have their pathing updated after files are moved; see todo in code
@@ -311,6 +322,24 @@
         cursor: pointer;
         /*box-shadow: 0px 0px 10px rgba(200, 200, 200);*/
       }
+      .arrow {
+        display: inline-block;
+        position: relative;
+        left: -3px;
+        top: -1px;
+        transform: rotate(-45deg);
+        width: 8px;
+        height: 8px;
+        border-right: 1px solid rgb(0, 0, 0);
+        border-bottom: 1px solid rgb(0, 0, 0);
+        margin: 0px 2px 0px 2px;
+        transition: all 0.3s;
+      }
+      .arrow-active {
+        transform: rotate(45deg);
+        left: 0px;
+        top: -3px;
+      }
       .sidebar-open {
         background-color: rgb(240, 240, 240);
       }
@@ -327,7 +356,7 @@
       }
       .sidebar-folder-contents {
         background-color: rgb(250, 250, 250);
-        padding: 0px 0px 0px 25px;
+        margin: 0px 0px 0px 25px;
         overflow-x: auto;
       }
       .sidebar-folder-contents-active {
@@ -591,7 +620,7 @@
                   contents: "\n/* Here's an example CSS file within the HTML project. Feel free to edit it! */\n\nbody {\n  padding: 100px;\n}\nh1 {\n  font-family: Helvetica;\n}"
                 }, {
                   type: "folder",
-                  name: "resources",
+                  name: "resources 1",
                   created: new Date().getTime(),
                   saved: new Date().getTime(),
                   open: true,
@@ -621,7 +650,7 @@
                   ]
                 }, {
                   type: "folder",
-                  name: "resources",
+                  name: "resources 2",
                   created: new Date().getTime(),
                   saved: new Date().getTime(),
                   open: false,
@@ -651,7 +680,7 @@
                   ]
                 }, {
                   type: "folder",
-                  name: "resources",
+                  name: "resources 3",
                   created: new Date().getTime(),
                   saved: new Date().getTime(),
                   open: true,
@@ -681,7 +710,7 @@
                   ]
                 }, {
                   type: "folder",
-                  name: "resources",
+                  name: "resources 4",
                   created: new Date().getTime(),
                   saved: new Date().getTime(),
                   open: true,
@@ -709,6 +738,13 @@
                       contents: "[3] This is an example resource file."
                     }
                   ]
+                }, {
+                  type: "folder",
+                  name: "Empty Folder",
+                  created: new Date().getTime(),
+                  saved: new Date().getTime(),
+                  open: false,
+                  contents: []
                 }
               ]
             }
@@ -928,6 +964,7 @@
         function toggleFolder(path) {
           getPath(path).open = !getPath(path).open;
           toggle("folder_" + stringifyPath(path) + "_contents", "sidebar-folder-contents");
+          toggle("folder-arrow_" + stringifyPath(path), "arrow");
           switchClass("sidebar-open", document.getElementById(getID(currentPath)));
           classifyParentPath(currentPath, "sidebar-open");
         }
@@ -944,10 +981,13 @@
           // Create the new element:
           if (data.type === "folder") {
             parent.innerHTML += `
-              <div class="sidebar-folder-container" id="` + (id + "_container") + `">
-                <div class="sidebar-folder" id="` + id + `" onclick="toggleFolder([` + objectifyPath(id.split("_")[1]) + `])"><span title="` + getNavPath(path).join("/") + `">
+              <div class="sidebar-folder-container" id="` + id + `_container">
+                <div class="sidebar-folder" id="` + id + `" onclick="toggleFolder([` + objectifyPath(id.split("_")[1]) + `])" draggable="true" ondragstart="fileDragStart('` + id + `')" ondragover="fileDragOver(event)" ondragend="fileDragEnd(event)">
+                  <div id="folder-arrow_` + id.split("_")[1] + `" class="arrow` + (data.open ? " arrow-active" : "") + `"></div>
+                  <span id="folder-child_` + id.split("_")[1] + `" title="` + getNavPath(path).join("/") + `">
                   ` + data.name + `
-                </span></div>
+                  </span>
+                </div>
                 <div class="t0-5 sidebar-folder-contents` + (data.open ? "" : " sidebar-folder-contents-active") + `" id="` + (id + "_contents") + `">
 
                 </div>
@@ -994,7 +1034,9 @@
         var fileDrag = {
           dragging: {
             el: false,
-            path: false
+            path: false,
+            type: false,
+            wasOpen: false
           },
           over: {
             el: false,
@@ -1021,25 +1063,30 @@
           removeClass('editor-tab-linked'); // Don't highlight the linked tab while dragging
           fileDrag.dragging = {
             el: document.getElementById(id),
-            path: objectifyPath(id.split("_")[1])
+            path: objectifyPath(id.split("_")[1]),
+            type: getPath(fileDrag.dragging.path).type,
+            wasOpen: getPath(objectifyPath(id.split("_")[1])).type === "folder" && getPath(objectifyPath(id.split("_")[1])).open
           };
+          if (fileDrag.dragging.wasOpen) { // Close folders so you can't put a folder inside of itself
+            toggleFolder(fileDrag.dragging.path);
+          }
         }
         function fileDragOver(e) {
           removeClass('editor-tab-linked'); // Don't highlight the linked tab while dragging
           e.preventDefault();
           if (fileDrag.dragging.el) { // Make sure that a file is being dragged
-            if (e.target.id.split("_")[0] === "file") { // If dragging over the file, just go with that
+            if (e.target.id.split("_")[0] === "file" || e.target.id.split("_")[0] === "folder") { // If dragging over the file/folder, just go with that
               fileDrag.over = {
                 el: e.target,
                 path: objectifyPath(e.target.id.split("_")[1])
               };
-            } else if (e.target.id.split("_")[0] === "file-child") { // If dragging over the file's child, use its parent
+            } else if (e.target.id.split("_")[0] === "file-child" || e.target.id.split("_")[0] === "folder-child" || e.target.id.split("_")[0] === "folder-arrow") { // If dragging over the file/folder's child, use its parent
               fileDrag.over = {
                 el: e.target.parentNode,
                 path: objectifyPath(e.target.parentNode.id.split("_")[1])
               };
             }
-            if (e.target.id.split("_")[0] === "file" || e.target.id.split("_")[0] === "file-child") { // Make sure its being dragged over a file or its child
+            if (e.target.id.split("_")[0] === "file" || e.target.id.split("_")[0] === "file-child" || (e.target.id.split("_")[0] === "folder" || e.target.id.split("_")[0] === "folder-child" || e.target.id.split("_")[0] === "folder-arrow") && !getPath(fileDrag.over.path).open) { // Make sure its being dragged over a file/folder or its child; if it's a folder, make sure it's not open
               if (fileDrag.dragging.el.id !== fileDrag.over.el.id) {
                 if (mousePos(e).y < fileDrag.over.el.offsetTop + 100 + fileDrag.over.el.offsetHeight / 2) { // Top
                   if (!document.getElementsByClassName("sidebar-over-top")[0] || fileDrag.over.el.id !== document.getElementsByClassName("sidebar-over-top")[0].id) {
@@ -1061,6 +1108,8 @@
         function fileDragEnd(e) {
           removeClass('editor-tab-linked'); // Don't highlight the linked file while dragging
           if (fileDrag.dragging.el.id !== fileDrag.over.el.id) {
+            var originalPath = [...fileDrag.dragging.path];
+
             var originalMap = createFileMap(files, []);
             var fileMap = createFileMap(files, []);
 
@@ -1095,7 +1144,14 @@
 
             displayAllFiles();
             displayAllTabs();
-          
+
+            // Reopen the folder if it was open before being moved:
+            if (fileDrag.dragging.wasOpen) {
+              setTimeout(function() { // Delay the opening so that the animation plays properly
+                toggleFolder(getPath(originalPath, newLocations).path);
+              }, 50);
+            }
+
             if (currentPath.length !== 0) {
               currentPath = getPath(currentPath, newLocations).path; // Update the current location
               openFile(currentPath);
@@ -1162,116 +1218,6 @@
             }
           }
           return false;
-        }
-        // function fileDragEnd(e) {
-        //   removeClass('editor-tab-linked'); // Don't highlight the linked tab while dragging
-        //   if (fileDrag.dragging.el.id !== fileDrag.over.el.id) {
-        //     var pathMap = [];
-        //     var fileDragData = getPath(fileDrag.dragging.path);
-        //     var bottom = false;
-        //     if (mousePos(e).y < fileDrag.over.el.offsetTop + 100 + fileDrag.over.el.offsetHeight / 2) { // Top
-        //       getPath(getParentPath(fileDrag.over.path)).contents.splice(fileDrag.over.path[fileDrag.over.path.length - 1], 0, fileDragData); // Copy it to its new location
-        //     } else { // Bottom
-        //       bottom = true;
-        //       getPath(getParentPath(fileDrag.over.path)).contents.splice(fileDrag.over.path[fileDrag.over.path.length - 1] + 1, 0, fileDragData); // Copy it to its new location
-        //     }
-        //
-        //     var changed = false;
-        //     // Figure out if the file was placed above where it was (it's path value is less than what it was before):
-        //     if (isPathALessThanPathB(fileDrag.over.path, fileDrag.dragging.path)) {
-        //       // If it is, update the old path:
-        //       fileDrag.dragging.path[fileDrag.over.path.length - 1]++;
-        //       changed = true;
-        //     }
-        //
-        //     // Remove the old file:
-        //     getPath(getParentPath(fileDrag.dragging.path)).contents.splice(fileDrag.dragging.path[fileDrag.dragging.path.length - 1], 1);
-        //
-        //     if (changed) { // Revert the change made above so tab updating works as intended
-        //       fileDrag.dragging.path[fileDrag.over.path.length - 1]--;
-        //     }
-        //
-        //     console.log(fileDrag.dragging.path, fileDrag.over.path);
-        //     if (bottom && !isPathALessThanPathB(fileDrag.dragging.path, fileDrag.over.path)) {
-        //       fileDrag.over.path[fileDrag.over.path.length - 1]++;
-        //     }
-        //     console.log(fileDrag.dragging.path, fileDrag.over.path);
-        //     // if (bottom && isPathALessThanPathB(fileDrag.over.path, fileDrag.dragging.path)) { // fix up some stuff
-        //     //   fileDrag.over.path[fileDrag.dragging.path.length - 1]++;
-        //     // }
-        //     // if (!bottom && !isPathALessThanPathB(fileDrag.over.path, fileDrag.dragging.path)) {
-        //     //   fileDrag.over.path[fileDrag.dragging.path.length - 1]--;
-        //     // }
-        //
-        //     // Update the tabs to match the change:
-        //     // updateTabs(files, fileDrag.dragging.path, fileDrag.over.path);
-        //     // for (var i = 0; i < tabs.length; i++) {
-        //     //   var tabPath = objectifyPath(tabs[i]);
-        //     //   if (tabs[i] === stringifyPath(fileDrag.dragging.path)) { // if (tablL = oldL)
-        //     //     if (tabs[i] === stringifyPath(currentPath)) {
-        //     //       currentPath = fileDrag.over.path;
-        //     //     }
-        //     //     tabPath = fileDrag.over.path;
-        //     //   } else if (!arePathAAndPathBInDifferentFolders())
-        //       // if (tabs[i] === stringifyPath(fileDrag.dragging.path)) { // if (tablL = oldL)
-        //       //   console.log("= " + tabs[i]);
-        //       //   if (tabs[i] === stringifyPath(currentPath)) {
-        //       //     currentPath = fileDrag.over.path;
-        //       //   }
-        //       //   tabPath = fileDrag.over.path;
-        //       // } else if (!arePathAAndPathBInDifferentFolders(fileDrag.dragging.path, fileDrag.over.path) && isPathALessThanOrEqualToPathB(fileDrag.over.path, tabPath) && isPathALessThanPathB(tabPath, fileDrag.dragging.path)) { // if (newL <= tabL & tabL < oldL)
-        //       //   console.log("< ++ " + tabs[i]);
-        //       //   if (tabs[i] === stringifyPath(currentPath)) {
-        //       //     currentPath[fileDrag.over.path.length - 1]++;
-        //       //   }
-        //       //   tabPath[fileDrag.over.path.length - 1]++;
-        //       // } else if (arePathAAndPathBInDifferentFolders(fileDrag.dragging.path, fileDrag.over.path) && isPathALessThanPathB(fileDrag.over.path, tabPath) && !arePathAAndPathBInDifferentFolders(fileDrag.over.path, tabPath)) {
-        //       //   console.log("> ++ " + tabs[i]);
-        //       //   if (tabs[i] === stringifyPath(currentPath)) {
-        //       //     currentPath[currentPath.length - 1]++;
-        //       //   }
-        //       //   tabPath[tabPath.length - 1]++;
-        //       // } else if (!arePathAAndPathBInDifferentFolders(fileDrag.dragging.path, fileDrag.over.path) && isPathALessThanPathB(fileDrag.dragging.path, tabPath) && isPathALessThanOrEqualToPathB(tabPath, fileDrag.over.path)) { // if (oldL < tabL & tabL <= newL)
-        //       //   console.log("< -- " + tabs[i]);
-        //       //   if (tabs[i] === stringifyPath(currentPath)) {
-        //       //     currentPath[fileDrag.over.path.length - 1]--;
-        //       //   }
-        //       //   tabPath[fileDrag.over.path.length - 1]--;
-        //       // } else if (arePathAAndPathBInDifferentFolders(fileDrag.dragging.path, fileDrag.over.path) && isPathALessThanPathB(fileDrag.dragging.path, tabPath) && arePathAAndPathBInDifferentFolders(fileDrag.dragging.path, fileDrag.over.path)) {
-        //       //   console.log("> -- " + tabs[i]);
-        //       //   if (tabs[i] === stringifyPath(currentPath)) {
-        //       //     currentPath[currentPath.length - 1]--;
-        //       //   }
-        //       //   tabPath[tabPath.length - 1]--;
-        //       // }
-        //
-        //       // TODO: test... appears to be broken somehow
-        //
-        //     //   tabs[i] = stringifyPath(tabPath); // Update the tab path
-        //     // }
-        //
-        //     displayAllTabs();
-        //     displayAllFiles();
-        //
-        //     if (currentPath.length !== 0) {
-        //       openFile(currentPath);
-        //     }
-        //   }
-        //   removeClass("sidebar-over-top");
-        //   removeClass("sidebar-over-bottom");
-        //   fileDrag = {
-        //     dragging: {
-        //       el: false,
-        //       i: false
-        //     },
-        //     over: {
-        //       el: false,
-        //       i: false
-        //     }
-        //   };
-        // }
-        function updateTabs(f, oldP, newP) {
-          console.log(oldP, newP);
         }
 
         /*
