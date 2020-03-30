@@ -91,6 +91,20 @@
         margin: 0px;
         font-weight: 400;
       }
+      .x {
+        background-color: rgba(180, 180, 180, 0.2);
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        margin: 5px 0px 5px 10px;
+        border-radius: 100%;
+        line-height: 20px;
+        text-align: center;
+        transition: all 0.5s;
+      }
+      .x:hover {
+        background-color: rgba(180, 180, 180, 0.5);
+      }
 
       /* Options / Option Icons */
       .icon {
@@ -379,6 +393,7 @@
         overflow-x: auto;
       }
       .editor-tab {
+        display: flex;
         background-color: rgb(250, 250, 250);
         min-width: 100px;
         height: 30px;
@@ -513,7 +528,7 @@
         </div>
         <!-- Text Editor Display -->
         <div class="editor-text-container">
-
+          You don't have any files open. Click on a file in the sidebar to get started!
         </div>
         <!-- Info Display -->
         <div class="editor-info">
@@ -1317,6 +1332,29 @@
           }
           switchClass("editor-tab-open", document.getElementById("tab_" + id));
         }
+        function closeTab(path, e) {
+          e.stopPropagation(); // Prevent the tab from being reopened
+          if (stringifyPath(currentPath) === stringifyPath(path)) {
+            if (tabs.indexOf(stringifyPath(path)) === tabs.length - 1) { // Open tab is the last tab
+              if (tabs.length > 1) { // Other tabs are open
+                currentPath = objectifyPath(tabs[tabs.length - 2]);
+              } else { // No other tabs are open
+                currentPath = [];
+              }
+            } else { // Open tab is not the last tab
+              currentPath = objectifyPath(tabs[tabs.indexOf(stringifyPath(path)) + 1]);
+            }
+          }
+          tabs.splice(tabs.indexOf(stringifyPath(path)), 1);
+          displayAllTabs();
+          removeClass("sidebar-linked");
+          if (currentPath.length > 0) {
+            openFile(currentPath);
+          } else {
+            removeClass("sidebar-open");
+            document.getElementsByClassName("editor-text-container")[0].innerText = "You don't have any files open. Click on a file in the sidebar to get started!";
+          }
+        }
         function displayAllTabs() {
           document.getElementsByClassName("editor-tabs")[0].innerHTML = "";
           var id, path, data;
@@ -1325,7 +1363,7 @@
             document.getElementsByClassName("editor-tabs")[0].innerHTML += `
               <div class="editor-tab` + (id === stringifyPath(currentPath) ? " editor-tab-open" : "") + `" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)" onmouseover="hoverTabLinked([` + objectifyPath(id) + `])" onmouseout="removeClass('sidebar-linked')"><span id="tab-child_` + id + `" title="` + getNavPath(path).join("/") + `">
                 ` + (data.name + "." + data.extension) + `
-              </span></div>
+              </span><span class="x" onclick="closeTab([` + path + `], event)">x</span></div>
             `;
           }
         }
