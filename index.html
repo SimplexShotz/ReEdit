@@ -92,18 +92,20 @@
         font-weight: 400;
       }
       .x {
-        background-color: rgba(180, 180, 180, 0.2);
         display: inline-block;
-        width: 20px;
-        height: 20px;
+        color: rgb(100, 100, 100);
+        width: 18px; /* width and height are actually 20px in total */
+        height: 18px;
         margin: 5px 0px 5px 10px;
+        border: 1px solid rgba(100, 100, 100, 0.5);
         border-radius: 100%;
-        line-height: 20px;
+        line-height: 17px;
         text-align: center;
         transition: all 0.5s;
       }
       .x:hover {
-        background-color: rgba(180, 180, 180, 0.5);
+        color: rgba(255, 100, 100);
+        border-color: rgba(255, 100, 100, 0.5);
       }
 
       /* Options / Option Icons */
@@ -398,7 +400,7 @@
         min-width: 100px;
         height: 30px;
         margin: 0px;
-        padding: 10px;
+        padding: 10px 15px;
         text-align: center;
         line-height: 30px;
         transition: all 0.5s, border 0s;
@@ -1363,7 +1365,7 @@
             document.getElementsByClassName("editor-tabs")[0].innerHTML += `
               <div class="editor-tab` + (id === stringifyPath(currentPath) ? " editor-tab-open" : "") + `" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)" onmouseover="hoverTabLinked([` + objectifyPath(id) + `])" onmouseout="removeClass('sidebar-linked')"><span id="tab-child_` + id + `" title="` + getNavPath(path).join("/") + `">
                 ` + (data.name + "." + data.extension) + `
-              </span><span class="x" onclick="closeTab([` + path + `], event)">x</span></div>
+              </span><span class="x" onclick="closeTab([` + path + `], event)">×</span></div>
             `;
           }
         }
