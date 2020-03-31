@@ -93,19 +93,20 @@
       }
       .x {
         display: inline-block;
-        color: rgb(100, 100, 100);
-        width: 18px; /* width and height are actually 20px in total */
-        height: 18px;
-        margin: 5px 0px 5px 10px;
-        border: 1px solid rgba(100, 100, 100, 0.5);
+        color: rgba(100, 100, 100, 0);
+        min-width: 0px; /* width and height are actually 20px in total */
+        height: 0px;
+        margin: 10px 0px;
+        border: 0px solid rgba(100, 100, 100, 0);
         border-radius: 100%;
-        line-height: 17px;
+        line-height: 0px;
+        font-size: 0pt;
         text-align: center;
         transition: all 0.5s;
       }
       .x:hover {
-        color: rgba(255, 100, 100);
-        border-color: rgba(255, 100, 100, 0.5);
+        color: rgba(255, 100, 100) !important;
+        border-color: rgba(255, 100, 100, 0.5) !important;
       }
 
       /* Options / Option Icons */
@@ -401,7 +402,6 @@
         height: 30px;
         margin: 0px;
         padding: 10px 15px;
-        text-align: center;
         line-height: 30px;
         transition: all 0.5s, border 0s;
         /* Fix animation fragments: */
@@ -409,9 +409,26 @@
         -webkit-backface-visibility: hidden;
         -moz-backface-visibility: hidden;
       }
+      .editor-tab-text {
+        display: inline-block;
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        min-width: 100px;
+        text-align: center;
+      }
       .editor-tab:hover {
         background-color: rgb(225, 225, 225);
+        min-width: 130px;
         cursor: pointer;
+      }
+      .editor-tab:hover .x {
+        color: rgba(100, 100, 100);
+        min-width: 18px; /* width and height are actually 20px in total */
+        height: 18px;
+        margin: 5px 0px 5px 10px;
+        border: 1px solid rgba(100, 100, 100, 0.5);
+        line-height: 17px;
+        font-size: 12pt;
       }
       .editor-tab:active {
         background-color: rgb(200, 200, 200);
@@ -1363,7 +1380,7 @@
           for (var i = 0; i < tabs.length; i++) {
             id = tabs[i], path = objectifyPath(id), data = getPath(path);
             document.getElementsByClassName("editor-tabs")[0].innerHTML += `
-              <div class="editor-tab` + (id === stringifyPath(currentPath) ? " editor-tab-open" : "") + `" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)" onmouseover="hoverTabLinked([` + objectifyPath(id) + `])" onmouseout="removeClass('sidebar-linked')"><span id="tab-child_` + id + `" title="` + getNavPath(path).join("/") + `">
+              <div class="editor-tab` + (id === stringifyPath(currentPath) ? " editor-tab-open" : "") + `" id="tab_` + id + `" onclick="openFile([` + path + `])" draggable="true" ondragstart="tabDragStart('` + id + `')" ondragover="tabDragOver(event)" ondragend="tabDragEnd(event)" onmouseover="hoverTabLinked([` + objectifyPath(id) + `])" onmouseout="removeClass('sidebar-linked')"><span class="editor-tab-text" id="tab-child_` + id + `" title="` + getNavPath(path).join("/") + `">
                 ` + (data.name + "." + data.extension) + `
               </span><span class="x" onclick="closeTab([` + path + `], event)">×</span></div>
             `;
