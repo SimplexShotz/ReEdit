@@ -394,6 +394,12 @@
         margin: 0px;
         padding: 0px;
         overflow-x: auto;
+        /* Hide Scrollbars (IE and Edge) */
+        -ms-overflow-style: none;
+      }
+      /* Hide Scrollbars (Chrome, Safari, amd Opera) */
+      .editor-tabs::-webkit-scrollbar {
+        display: none;
       }
       .editor-tab {
         display: flex;
