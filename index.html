@@ -1024,7 +1024,7 @@
           if (data.type === "folder") {
             parent.innerHTML += `
               <div class="sidebar-folder-container" id="` + id + `_container">
-                <div class="sidebar-folder" id="` + id + `" onclick="toggleFolder([` + objectifyPath(id.split("_")[1]) + `])" draggable="true" ondragstart="fileDragStart('` + id + `')" ondragover="fileDragOver(event)" ondragend="fileDragEnd(event)">
+                <div class="sidebar-folder" id="` + id + `" onclick="toggleFolder([` + objectifyPath(id.split("_")[1]) + `])" draggable="true" ondragstart="fileDragStart('` + id + `')" ondragover="fileDragOver(event)" ondragend="fileDragEnd(event)" oncontextmenu="openFileContextMenu([` + path + `], event)">
                   <div id="folder-arrow_` + id.split("_")[1] + `" class="arrow` + (data.open ? " arrow-active" : "") + `"></div>
                   <span id="folder-child_` + id.split("_")[1] + `" title="` + getNavPath(path).join("/") + `">
                   ` + data.name + `
@@ -1037,7 +1037,7 @@
             `;
           } else {
             parent.innerHTML += `
-              <div class="sidebar-file" id="` + id + `" onclick="openFile([` + path  + `])" draggable="true" ondragstart="fileDragStart('` + id + `')" ondragover="fileDragOver(event)" ondragend="fileDragEnd(event)" onmouseover="addClass('editor-tab-linked', document.getElementById('tab_` + stringifyPath(path) + `') ? document.getElementById('tab_` + stringifyPath(path) + `') : false)" onmouseout="removeClass('editor-tab-linked')"><span id="file-child_` + id + `" title="` + getNavPath(path).join("/") + `">
+              <div class="sidebar-file" id="` + id + `" onclick="openFile([` + path  + `])" draggable="true" ondragstart="fileDragStart('` + id + `')" ondragover="fileDragOver(event)" ondragend="fileDragEnd(event)" oncontextmenu="openFileContextMenu([` + path + `], event)" onmouseover="addClass('editor-tab-linked', document.getElementById('tab_` + stringifyPath(path) + `') ? document.getElementById('tab_` + stringifyPath(path) + `') : false)" onmouseout="removeClass('editor-tab-linked')"><span id="file-child_` + id + `" title="` + getNavPath(path).join("/") + `">
                 ` + (data.name + "." + data.extension) + `
               </span></div>
             `;
@@ -1657,12 +1657,28 @@
         /*
 
           CONTEXT MENU FUNCTIONS:
-           openContext(path, e)
+           openFileContextMenu(path, e)
             = Opens a context menu for the given path at the given event's location
             - path: the path to the file
             - e: the event data for the context menu click
 
         */
+        function openFileContextMenu(path, e) {
+          // Display the context menu at the mouse position:
+          e.preventDefault();
+          e.stopPropagation();
+
+          var mp = mousePos(e);
+          var mouseX = mp.absolutePos.x, mouseY = mp.absolutePos.y;
+          var context = document.getElementsByClassName("context")[0];
+
+          context.style.display = "block";
+          context.style.left = mouseX + "px";
+          context.style.top = mouseY + "px";
+
+          // Add the options to the context menu:
+          context.innerHTML = getPath(path).name + (getPath(path).type === "file" ? "." + getPath(path).extension : "");
+        }
 
         /*
 
@@ -1747,6 +1763,10 @@
             mouseX = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
             mouseY = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
           }
+          var absolutePos = {
+            x: mouseX,
+            y: mouseY
+          };
           // Add the scroll of the parent elements (excluding the element itself (not needed) plus body, html, document and window scolls, as those are already taken into consideration)
           if (e.path) {
             for (var i = 1; i < e.path.length - 4; i++) {
@@ -1756,7 +1776,8 @@
           }
           return {
             x: mouseX,
-            y: mouseY
+            y: mouseY,
+            absolutePos: absolutePos
           }
         }
 
@@ -1804,7 +1825,7 @@
             = Sets the function that runs when the run icon is clicked
            #context
             = Sets the functions that open/close the context menu
-            - #context.open: displays the context menu at the mouse position when the contextmenu event is fired
+            - #context.open: displays the context menu at the mouse position when the contextmenu event is fired [TODO: no longer used]
             - #context.close: hides the context menu when the click event is fired using the left mouse button
 
         */
@@ -1822,15 +1843,16 @@
           // #context
           // .open
           document.getElementsByClassName("sidebar")[0].oncontextmenu = function(e) {
-            e.preventDefault();
-
-            var mp = mousePos(e);
-            var mouseX = mp.x, mouseY = mp.y;
-            var context = document.getElementsByClassName("context")[0];
-
-            context.style.display = "block";
-            context.style.left = mouseX + "px";
-            context.style.top = mouseY + "px";
+            openFileContextMenu([], e);
+          //   e.preventDefault();
+          //
+          //   var mp = mousePos(e);
+          //   var mouseX = mp.x, mouseY = mp.y;
+          //   var context = document.getElementsByClassName("context")[0];
+          //
+          //   context.style.display = "block";
+          //   context.style.left = mouseX + "px";
+          //   context.style.top = mouseY + "px";
           };
           // .close
           document.onclick = function(e) {
