@@ -868,13 +868,22 @@
 
         /*
 
-         PATH CONVERSIONS:
+         PATH CONVERSIONS/OPERATORS:
           stringifyPath(path)
            = Takes a path and turns it into a string
            - path: the path to the file
           objectifyPath(path)
            = Takes a stringified path and turns it back into a path
            - path: the stringified path
+          isPathALessThanOrEqualToPathB(pathA, pathB)
+           = Returns whether moving a file from the given "pathA" to the given "pathB" will cause files below pathB to have their path change
+           - pathA: "from" path
+           - pathB: "to" path
+           - example 1: isPathALessThanOrEqualToPathB([0], [1]) -> false
+           - example 2: isPathALessThanOrEqualToPathB([0], [0]) -> true
+           - example 3: isPathALessThanOrEqualToPathB([1], [0]) -> true
+           - example 4: isPathALessThanOrEqualToPathB([1, 0], [0]) -> true
+           - example 5: isPathALessThanOrEqualToPathB([1], [0, 0]) -> false
 
         */
         function stringifyPath(path) {
@@ -1087,9 +1096,28 @@
             = Sets the fileDrag.over object when a file is being dragged over and displays which side the file that is being dragged will be dropped on
             - e: the event data for the element being dragged over
             - example: [asumming a file is being dragged over the bottom side of file at the path [1, 1]] fileDragStart(e) -> fileDrag.dragging{} = {[data]}, black border on the bottom side of the file at the path [1, 1]
-           tabDragEnd(e)
-            = Drops the tab that is being dragged where the user wants it and resets element classes and the tabDrag object
+           fileDragEnd(e)
+            = Drops the file that is being dragged where the user wants it and resets element classes and the fileDrag object
             - e: the event data for the element being dragged
+           #notice
+            = the following functions may be somewhat difficult to understand. just know that when you move a file, it looks at the old files and finds out where they moved to.
+           createFileMap(f, path)
+            = Creates a mapping of the files at the given path
+            - f: the provided file data (this is the file at the given path)
+            - path: path to the current file being mapped
+            - example: [assuming there is a folder at [0], a file at [0, 0], and a file at [0, 1]] createFileMap(files, []) -> { type: "folder", path: [], contents: [ { type: "folder", path: [0], contents: [ { type: "file", path: [0, 0] }, { type: "file", path: [0, 1] } ] } ] }
+           createFileRemap(f, path, newMap)
+            = Creates a file remap of where each file moved to (the original file map is the given "f", and the file map of where the files moved to is the given "newMap")
+            - f: the original file map (the map of the file map before the files have been moved); this is also the file found at the given path
+            - path: the path to the current file being remapped
+            - newMap: the map of the file map after the files have been moved
+            - example: [use createFileMap example for "originalMap"; assuming the file at [0, 0] was moved to [1], and this new map is stored at "newMap"] createFileRemap(originalMap, [], newMap) -> { type: "folder", path: [], contents: [ { type: "folder", path: [0], contents: [ { type: "file", path: [1] }, { type: "file", path: [0, 0] } ] } ] }
+           findPath(f, searchPath, path)
+            = Finds the path of the given "searchPath" in the given file map, "f"
+            - f: the file map that the given "searchPath" should be found within
+            - searchPath: the path to be searched for
+            - path: the path to the current part of the file map being searched
+            - example: [use createFileMap example for "originalMap"; assuming the file at [0, 0] was moved to [1], and this new map is stored at "newMap"] findPath(newMap, [0, 1], []) -> [0, 0]
 
         */
         function fileDragStart(id) {
@@ -1518,6 +1546,11 @@
             = Calculates a search score for all the files/folders found in the given path using the given term
             - term: the term(s) to be searched for; terms are seperated by a space
             - path: the path to the folder being searched
+           showResults(show)
+            = Shows or hides the search results container
+            - show: whether or not to show the search results container
+           updateSearch()
+            = Performs a search with the value of the search input and displays them to the user
 
         */
         function occurences(term, str) {
@@ -1618,9 +1651,18 @@
                 </span></div>
               `;
             }
-            // console.log(search(s.value));
           }
         }
+
+        /*
+
+          CONTEXT MENU FUNCTIONS:
+           openContext(path, e)
+            = Opens a context menu for the given path at the given event's location
+            - path: the path to the file
+            - e: the event data for the context menu click
+
+        */
 
         /*
 
@@ -1665,8 +1707,7 @@
           }
         }
 
-      //
-
+      // ================================================================================================================================================================================
 
       // Event Handling:
         /*
