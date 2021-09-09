@@ -1681,6 +1681,14 @@
 
           // Add the options to the context menu:
           context.innerHTML = getPath(path).name + (getPath(path).type === "file" ? "." + getPath(path).extension : "");
+          
+          // OPTIONS to ADD:
+          // Files:
+          // Rename, Delete, Open, Download, Run (for supported file types), Get Info
+          // Folders:
+          // Rename, Delete, Collapse/Expand, Download, Get Info (shows nested item count, direct child count, expected download size, name, date created, etc.), Search Inside, Run (for supported setups), Import/Upload, Download Compressed(?), etc.
+          
+          // TODO
         }
 
         /*
