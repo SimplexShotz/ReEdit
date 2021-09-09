@@ -6,7 +6,7 @@
 
   SOLVED:
    tab squishing <•>
-    = tabs with a name that doens't fit into the min-width will be squished as soon as there is no room left in the tabs container
+    = tabs with a name that doesn't fit into the min-width will be squished as soon as there is no room left in the tabs container
     - fix: hovering over files will show their full name
     - type: display (or logic)
     - level: minor (or major)
@@ -459,6 +459,9 @@
         margin: 0px;
         padding: 25px;
       }
+      .editor-text-container:focus {
+        outline: none;
+      }
       .editor-info {
         position: relative;
         background-color: rgb(250, 250, 250);
@@ -552,7 +555,7 @@
         <div class="editor-tabs">
         </div>
         <!-- Text Editor Display -->
-        <div class="editor-text-container">
+        <div class="editor-text-container" contenteditable>
           You don't have any files open. Click on a file in the sidebar to get started!
         </div>
         <!-- Info Display -->
@@ -643,7 +646,7 @@
                   extension: "html",
                   created: new Date().getTime(),
                   saved: new Date().getTime(),
-                  contents: "<!DOCTYPE html>\n<!-- This is an example HTML project. Feel free to edit it! -->\n<html>\n  <head>\n    <title>An Example Project!</title>\n  <link rel=\"stylesheet\" href=\"stylesheet.css\">\n  </head>\n  <body>\n    <h1>Hello World!</h1>\n  </body>\n</html>"
+                  contents: "<!DOCTYPE html>\n<!-- This is an example HTML project. Feel free to edit it! -->\n<html>\n  <head>\n    <title>An Example Project!</title>\n    <link rel=\"stylesheet\" href=\"stylesheet.css\">\n  </head>\n  <body>\n    <h1>Hello World!</h1>\n  </body>\n</html>"
                 }, {
                   type: "file",
                   name: "stylesheet",
@@ -1426,7 +1429,7 @@
           classifyParentPath(path, "sidebar-linked");
         }
         function openEditor(path) {
-          document.getElementsByClassName("editor-text-container")[0].innerText = getPath(path).contents;
+          document.getElementsByClassName("editor-text-container")[0].innerHTML = getPath(path).contents.split("<").join("&lt").split("\n").join("<br>").split(" ").join("&nbsp");
         }
 
         /*
